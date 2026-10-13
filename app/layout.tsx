@@ -43,7 +43,7 @@ const BOOT_SCRIPT = `(function(){var d=document.documentElement;d.classList.add(
 
 export const metadata: Metadata = {
   title: "MAISON SÈVE",
-  description: "Maison Sève — womenswear and menswear.",
+  description: "Maison Sève. Clothes for women and men, made slowly and made to last.",
 };
 
 export const viewport: Viewport = {

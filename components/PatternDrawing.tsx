@@ -54,7 +54,7 @@ export default function PatternDrawing({ className = "" }: { className?: string 
           <path key={d} d={d} className="pattern-line" pathLength={1} fill="none" stroke="currentColor" strokeWidth={1} />
         ))}
       </svg>
-      <figcaption className="ui-label mt-4 text-stone">Sleeve — cut 2 — grain on fold</figcaption>
+      <figcaption className="ui-label mt-4 text-stone">Sleeve · cut 2 · grain on fold</figcaption>
     </figure>
   );
 }

@@ -19,8 +19,8 @@ import { getProduct } from "./products";
 export type Delivery = { id: "standard" | "express"; label: string; detail: string; price: { usd: number; ngn: number } };
 
 export const DELIVERY_OPTIONS: Delivery[] = [
-  { id: "standard", label: "Standard", detail: "Complimentary · 2–8 working days", price: { usd: 0, ngn: 0 } },
-  { id: "express", label: "Express", detail: "1–3 working days", price: { usd: 45, ngn: 70000 } },
+  { id: "standard", label: "Standard", detail: "Free · 2 to 8 working days", price: { usd: 0, ngn: 0 } },
+  { id: "express", label: "Express", detail: "1 to 3 working days", price: { usd: 45, ngn: 70000 } },
 ];
 
 export type CheckoutDetails = {

@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import CollectionPage from "@/components/shop/CollectionPage";
 import { PRODUCTS } from "@/lib/products";
 
-export const metadata: Metadata = { title: "Collections — MAISON SÈVE" };
+export const metadata: Metadata = { title: "Collections · Maison Sève" };
 
 /** Every product, with the category filters. ?category=outerwear opens it filtered. */
 export default function Page() {
   return (
     <CollectionPage
-      label="Collections — All pieces"
+      label="Collections · Everything"
       title="The collections"
-      intro="Every piece in the house: outerwear, tailoring, dresses, shirts, trousers, footwear, headwear and accessories."
+      intro="Everything we make, all in one place. Coats, tailoring, dresses, shirts, trousers, shoes, hats and bags."
       products={PRODUCTS}
     />
   );

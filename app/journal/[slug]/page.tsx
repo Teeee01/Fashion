@@ -12,7 +12,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const article = getArticle((await params).slug);
-  return article ? { title: `${article.title} — MAISON SÈVE`, description: article.standfirst } : { title: "MAISON SÈVE" };
+  return article ? { title: `${article.title} · Maison Sève`, description: article.standfirst } : { title: "MAISON SÈVE" };
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
@@ -23,7 +23,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <EditorialPage
-      label={`Journal — ${article.category} · ${article.date}`}
+      label={`Journal · ${article.category} · ${article.date}`}
       title={article.title}
       standfirst={article.standfirst}
       image={{ src: article.image.replace("ar=7:9", "ar=16:9"), alt: article.alt }}

@@ -118,10 +118,10 @@ export default function Lookbook() {
 
         <div ref={caption} className="absolute bottom-pad left-pad text-ivory">
           <p className="ui-label mask">
-            <span className="lookbook-line block">Lookbook — AW26</span>
+            <span className="lookbook-line block">Lookbook · AW26</span>
           </p>
           <h2 id="lookbook-title" className="headline mask mt-3 pb-[0.06em] italic">
-            <span className="lookbook-line block">Volume, then silence.</span>
+            <span className="lookbook-line block">Room to breathe.</span>
           </h2>
         </div>
       </div>

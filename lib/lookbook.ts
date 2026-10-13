@@ -19,7 +19,7 @@ export type LookbookLook = {
 
 export const CAMPAIGN: LookbookLook = {
   number: "09",
-  title: "The long coat, outdoors",
+  title: "The long coat, outside",
   src: unsplash("1469334031218-e382a71b716b", "16:9"),
   alt: "Campaign image: a model in a long coat in an open landscape",
   products: ["wool-crepe-column-coat", "tailored-wide-leg-pants", "sculpted-leather-loafer", "silk-twill-scarf"],
@@ -38,7 +38,7 @@ export type GridImage = LookbookLook & {
 export const LOOKBOOK_GRID: GridImage[] = [
   {
     number: "10",
-    title: "Silk, close",
+    title: "Silk, up close",
     products: ["bias-cut-slip-dress", "silk-twill-scarf"],
     src: unsplash("1534528741775-53994a69daeb", "4:5"),
     alt: "Close portrait in soft side light",
@@ -58,7 +58,7 @@ export const LOOKBOOK_GRID: GridImage[] = [
   },
   {
     number: "12",
-    title: "Shoulder and pleat",
+    title: "Shoulders and pleats",
     products: ["sculpted-shoulder-blazer", "pleated-silk-skirt", "leather-ankle-boot"],
     src: unsplash("1524504388940-b1c1722653e1", "2:3"),
     alt: "Model looking away from the camera",
@@ -68,17 +68,17 @@ export const LOOKBOOK_GRID: GridImage[] = [
   },
   {
     number: "13",
-    title: "Brim and cape",
+    title: "A hat and a cape",
     products: ["wool-felt-bucket-hat", "felted-wool-cape", "leather-column-bag"],
     src: unsplash("1445205170230-053b83016050", "3:2"),
-    alt: "Model in a wide-brimmed hat, seen from the side",
+    alt: "Model in a wide brimmed hat, seen from the side",
     place: "col-span-12 mt-[8vh] md:col-start-7 md:col-span-6 md:mt-[34vh]",
     aspect: "aspect-[3/2]",
     speed: 1.2,
   },
   {
     number: "14",
-    title: "Linen, morning",
+    title: "Linen in the morning",
     products: ["linen-wrap-shirt", "tailored-wide-leg-pants", "embroidered-monogram-cap", "sculpted-leather-loafer"],
     src: unsplash("1507003211169-0a1dd7228f2d", "4:5"),
     alt: "Portrait of a man in natural light",

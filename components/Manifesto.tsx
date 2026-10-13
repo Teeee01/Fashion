@@ -6,8 +6,8 @@ import { DURATION, prefersReducedMotion } from "@/lib/motion";
 import { ribbonState } from "@/lib/ribbon-state";
 
 const MANIFESTO =
-  "We cut slowly. Every seam is a decision, every fold a quiet argument for keeping things longer. " +
-  "We work in wool, silk and linen, with patterns drafted by hand, so that what leaves the atelier " +
+  "We take our time. Every seam is a choice, and every fold is one more reason to keep something longer. " +
+  "We work in wool, silk and linen, with patterns drawn by hand, so whatever leaves our studio " +
   "can be worn, mended and worn again.";
 
 /* Everything below is scrubbed by scroll, as fractions of the pinned
@@ -90,7 +90,7 @@ export default function Manifesto() {
     <section ref={section} id="house" aria-labelledby="house-label" className="manifesto relative h-[200svh] motion-reduce:h-auto">
       <div className="sticky top-0 h-svh overflow-hidden motion-reduce:static">
         <p id="house-label" className="ui-label absolute left-pad top-[112px]" data-reveal="lines">
-          (01) — The House
+          (01) The House
         </p>
         <div className="grid-12 h-full items-center">
           <p

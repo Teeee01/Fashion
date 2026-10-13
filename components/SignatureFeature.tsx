@@ -252,7 +252,7 @@ export default function SignatureFeature({ signature: sig }: { signature: Signat
         </div>
 
         <p ref={kicker} className="ui-label absolute left-pad top-[112px]">
-          ({sig.index}) — {sig.title}
+          ({sig.index}) {sig.title}
         </p>
 
         {/* FRONT · SIDE · BACK · SIDE */}
@@ -288,7 +288,7 @@ export default function SignatureFeature({ signature: sig }: { signature: Signat
       {turning && (
         <div className="hidden px-pad py-[16vh] motion-reduce:block">
           <p className="ui-label mb-10">
-            ({sig.index}) — {sig.title}
+            ({sig.index}) {sig.title}
           </p>
           <ul className="mx-auto grid max-w-[880px] grid-cols-2 gap-gutter">
             {angles.map((a, k) => (

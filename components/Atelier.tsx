@@ -72,7 +72,7 @@ export default function Atelier() {
         <div className="col-span-12 flex flex-col justify-between gap-16 md:col-span-6 md:col-start-7">
           <div>
             <p id="atelier-label" className="ui-label mb-10" data-reveal="lines">
-              (08) — Atelier
+              (08) Atelier
             </p>
             <p ref={text} className="max-w-[24ch] font-display text-[28px] leading-[1.15] tracking-[-0.01em] md:text-[40px]">
               {ATELIER_TEXT}

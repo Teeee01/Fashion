@@ -21,7 +21,7 @@ const FILM = {
   mp4: "/campaign.mp4",
   webm: "/campaign.webm",
   poster: "/campaign-poster.jpg",
-  title: "Volume, then silence — Autumn–Winter 2026",
+  title: "Room to breathe · Autumn Winter 2026",
 };
 
 /** Window size at the start, as fractions of the screen width. */
@@ -156,7 +156,7 @@ export default function CampaignFilm() {
 
         <div ref={kicker} className="pointer-events-none absolute inset-x-pad top-[112px] flex justify-between">
           <p id="film-label" className="ui-label" data-reveal="lines">
-            (09) — Campaign Film
+            (09) Campaign Film
           </p>
           <p className="ui-label text-stone" data-reveal="lines">
             AW26

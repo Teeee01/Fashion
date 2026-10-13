@@ -1,15 +1,15 @@
 /* ──────────────────────────────────────────────────────────────
    Atelier content.
-   STATS: fill in `value` with your real numbers (e.g. value: 120).
-   While a value is null the page shows "[X]" and nothing counts.
+   STATS: the numbers count up from 0 when they scroll into view.
+   Change a `value` to update it (null shows "[X]" and doesn't count).
    ────────────────────────────────────────────────────────────── */
 
 export type Stat = { value: number | null; label: string };
 
 export const STATS: Stat[] = [
-  { value: null, label: "Hours per garment" },
-  { value: null, label: "Artisans" },
-  { value: null, label: "Fabric mills" },
+  { value: 40, label: "Hours per garment" },
+  { value: 12, label: "Artisans" },
+  { value: 6, label: "Fabric mills" },
 ];
 
 export const ATELIER_PHOTO = {
@@ -18,6 +18,6 @@ export const ATELIER_PHOTO = {
 };
 
 export const ATELIER_TEXT =
-  "Every garment begins on paper. Our patterns are drafted by hand, cut in muslin, fitted, recut, " +
-  "and only then traced onto cloth. The same pair of hands follows a coat from the first chalk line " +
-  "to the last buttonhole.";
+  "Everything we make starts on paper. We draw the patterns by hand, cut them in muslin, fit them, " +
+  "cut them again, and only then trace them onto the real cloth. The same pair of hands stays with a coat " +
+  "from the first chalk line to the last buttonhole.";

@@ -43,7 +43,7 @@ After that, any time you want to see the site:
 | **Signature series: photos, words, product links** | `lib/signatures.ts` |
 | **The cap's four angle photos (replace the placeholders)** | `public/images/cap/` (see the note in `lib/signatures.ts`) |
 | Atelier section (photo, text, pattern, stats) | `components/Atelier.tsx` |
-| **Atelier stats and text: put your real numbers here** | `lib/atelier.ts` |
+| **Atelier stats and text** | `lib/atelier.ts` |
 | Section divider (hairline that draws itself) | `components/Hairline.tsx` |
 | Campaign film section and full-screen player | `components/CampaignFilm.tsx` |
 | **Campaign film (replace with yours)** | `public/campaign.mp4`, `public/campaign.webm`, `public/campaign-poster.jpg` |
@@ -62,6 +62,7 @@ After that, any time you want to see the site:
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
+| **About page: your photo and the words about you** | `lib/about.ts` (photo: `public/images/about/akinyemi-titilope.jpg`) |
 | Your photos | `public/images/` |
 
 ## Replacing placeholder photos

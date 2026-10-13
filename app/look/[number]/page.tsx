@@ -14,7 +14,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ number: string }> }): Promise<Metadata> {
   const look = getLook((await params).number);
-  return { title: look ? `Look ${look.number}: ${look.title} — MAISON SÈVE` : "MAISON SÈVE" };
+  return { title: look ? `Look ${look.number}: ${look.title} · Maison Sève` : "MAISON SÈVE" };
 }
 
 export default async function Page({ params }: { params: Promise<{ number: string }> }) {
@@ -26,9 +26,9 @@ export default async function Page({ params }: { params: Promise<{ number: strin
 
   return (
     <EditorialPage
-      label={`Lookbook — AW26 · Look ${look.number}`}
+      label={`Lookbook · AW26 · Look ${look.number}`}
       title={look.title}
-      standfirst={`${products.length} pieces in this look.`}
+      standfirst={`Everything worn in this look. There are ${products.length} pieces.`}
       image={look}
       aspect={look.number === "09" ? "aspect-[4/5] md:aspect-[16/9]" : "aspect-[4/5] md:aspect-[16/10]"}
     >

@@ -15,7 +15,7 @@ import {
   type IntroMode,
 } from "@/lib/intro";
 import { SCROLL_MEMORY_KEY } from "@/lib/intro-key";
-import { NAV_OFFSET, useLenis } from "@/components/SmoothScroll";
+import { NAV_OFFSET, clearHash, useLenis } from "@/components/SmoothScroll";
 import { ribbonState } from "@/lib/ribbon-state";
 import Monogram, { MONOGRAM_SIZE } from "./Monogram";
 import RibbonStage from "./RibbonStage";
@@ -45,8 +45,8 @@ const TRACE = { total: 1.1, stagger: 0.12 }; // four strokes, 0.12s apart, 1.1s 
 const visible = (selector: string) =>
   gsap.utils.toArray<HTMLElement>(selector).filter((el) => el.getClientRects().length > 0);
 
-const LEFT_LINES = ["Garments shaped slowly,", "worn for years."];
-const RIGHT_LINES = ["Discover the new collection, designed to feel", "like a second skin."];
+const LEFT_LINES = ["Clothes made slowly,", "to be worn for years."];
+const RIGHT_LINES = ["The new collection is here, made to feel", "like it was always yours."];
 
 export default function Hero() {
   const monogram = useRef<SVGSVGElement>(null);
@@ -366,6 +366,9 @@ export default function Hero() {
     }
 
     mode.current = "hero";
+    // A shared link like /#journal opens there once; the address is then
+    // cleaned so a refresh or Back doesn't jump there again.
+    if (hashTarget) clearHash();
     if (restore !== null) {
       mode.current = "busy";
       const tl = playSettle();
@@ -472,7 +475,7 @@ export default function Hero() {
                 href="/#collections"
                 className="underline decoration-1 underline-offset-[3px] transition-colors duration-500 hover:text-stone"
               >
-                View collection
+                See the collection
               </Link>
             </span>
           </span>

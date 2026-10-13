@@ -26,9 +26,9 @@ const CHARTS = {
   caps: {
     head: ["Size", "Head circumference"],
     rows: [
-      ["S", "54–56"],
-      ["M", "56–58"],
-      ["L", "58–60"],
+      ["S", "54 to 56"],
+      ["M", "56 to 58"],
+      ["L", "58 to 60"],
     ],
   },
 } as const;
@@ -48,10 +48,10 @@ export default function SizeGuide({ open, onClose, kind }: { open: boolean; onCl
       <p className="mask mt-4">
         <span className="drawer-rise body-copy block text-stone">
           {kind === "shoes"
-            ? "Measure your foot from heel to longest toe. Between sizes, take the size up."
+            ? "Measure your foot from the heel to your longest toe. If you're between sizes, go up."
             : kind === "caps"
-              ? "Measure around your head, just above the ears. All caps adjust at the back."
-              : "Body measurements in centimetres. Between sizes, take the size up for a relaxed fit."}
+              ? "Measure around your head, just above your ears. Every cap adjusts at the back anyway."
+              : "These are body measurements in centimetres. If you're between sizes, go up for a more relaxed fit."}
         </span>
       </p>
       <div className="mask mt-8">

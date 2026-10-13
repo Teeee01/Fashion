@@ -22,7 +22,7 @@ type FooterLink = { label: string; href?: string };
 const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "House",
-    links: [{ label: "The house", href: "/#house" }, { label: "Atelier", href: "/#atelier" }, { label: "Journal", href: "/#journal" }, { label: "Careers" }],
+    links: [{ label: "The house", href: "/#house" }, { label: "Atelier", href: "/#atelier" }, { label: "Journal", href: "/#journal" }, { label: "About", href: "/about" }],
   },
   {
     title: "Collections",
@@ -145,7 +145,7 @@ export default function Footer() {
           className="col-span-12 max-w-[22ch] font-display text-[32px] leading-[1.1] tracking-[-0.01em] md:col-span-6 md:text-[40px]"
           data-reveal="lines"
         >
-          Letters from the atelier, four times a year.
+          A letter from us four times a year. That's it, no spam.
         </p>
         <form className="col-span-12 self-end md:col-span-5 md:col-start-8" onSubmit={onSubmit} noValidate={false}>
           <span className="mask mb-4">
@@ -171,7 +171,7 @@ export default function Footer() {
             <span className="newsletter-line pointer-events-none absolute inset-x-0 -bottom-px h-px origin-left bg-ink" aria-hidden="true" />
           </div>
           <p className="ui-label mt-4 min-h-[1.2em] text-stone" role="status" aria-live="polite">
-            {sent ? "Thank you. The next letter will find you." : ""}
+            {sent ? "Thanks, you're on the list." : ""}
           </p>
         </form>
       </div>

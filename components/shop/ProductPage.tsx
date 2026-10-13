@@ -164,7 +164,7 @@ export default function ProductPage({ product }: { product: Product }) {
             {/* Colours */}
             <fieldset className="mt-8">
               <legend className="ui-label mask mb-3 text-stone">
-                <span className="product-rise block">Colour — {colour.name}</span>
+                <span className="product-rise block">Colour: {colour.name}</span>
               </legend>
               <div className="mask">
                 <div className="product-rise flex gap-3 p-1">
@@ -234,7 +234,7 @@ export default function ProductPage({ product }: { product: Product }) {
                   )}
                   {soldOut.length > 0 && notify === "closed" && (
                     <button type="button" className="nav-link ui-label relative text-stone" onClick={() => setNotify("open")}>
-                      {soldOut.join(", ")} sold out — Notify me
+                      {soldOut.join(", ")} sold out. Tell me when it&apos;s back
                     </button>
                   )}
                 </div>
@@ -262,7 +262,7 @@ export default function ProductPage({ product }: { product: Product }) {
                   </button>
                 </form>
               )}
-              {notify === "sent" && <p className="ui-label mt-3 text-stone">We'll write as soon as it's back.</p>}
+              {notify === "sent" && <p className="ui-label mt-3 text-stone">Done. We&apos;ll email you the moment it&apos;s back.</p>}
             </fieldset>
 
             {/* Quantity + actions */}

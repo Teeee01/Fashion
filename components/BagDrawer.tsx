@@ -52,7 +52,7 @@ export default function BagDrawer() {
                 )}
                 {checkout}
               </div>
-              <p className="ui-label mt-3 text-center text-stone">Delivery and duties calculated at checkout</p>
+              <p className="ui-label mt-3 text-center text-stone">We&apos;ll work out delivery and duties at checkout</p>
             </div>
           </div>
         )

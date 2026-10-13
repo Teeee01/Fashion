@@ -142,15 +142,15 @@ export default function Collection() {
         <div ref={track} className="collection-track md:flex md:items-stretch md:gap-[2vw] md:px-pad">
           {/* Intro: first in the row on desktop, so it travels away with the looks. */}
           <div className="collection-intro mb-10 flex flex-col justify-between px-pad md:mb-0 md:shrink-0 md:px-0 md:pr-[4vw]">
-            <p className="ui-label mb-8 md:mb-0" data-reveal="lines">(02) — New Collection</p>
+            <p className="ui-label mb-8 md:mb-0" data-reveal="lines">(02) New Collection</p>
             <div>
               <h2 id="collection-title" ref={headline} className="headline">
                 {HEADLINE}
               </h2>
-              <p className="body-copy mt-6 text-stone" data-reveal="lines">Autumn–Winter 2026. Eight looks for women and men, cut in wool, silk and linen.</p>
+              <p className="body-copy mt-6 text-stone" data-reveal="lines">Autumn Winter 2026. Eight looks for women and men, in wool, silk and linen.</p>
               <span className="mask mt-8">
                 <Link href="/collections/aw26" className="nav-link ui-label relative inline-block" data-reveal="block">
-                  View the collection
+                  See the whole collection
                 </Link>
               </span>
             </div>

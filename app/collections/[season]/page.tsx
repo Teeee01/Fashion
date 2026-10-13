@@ -9,7 +9,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ season: string }> }): Promise<Metadata> {
   const season = getSeason((await params).season);
-  return { title: season ? `${season.title} — MAISON SÈVE` : "MAISON SÈVE" };
+  return { title: season ? `${season.title} · Maison Sève` : "MAISON SÈVE" };
 }
 
 export default async function Page({ params }: { params: Promise<{ season: string }> }) {
@@ -17,7 +17,7 @@ export default async function Page({ params }: { params: Promise<{ season: strin
   if (!season) notFound();
   return (
     <CollectionPage
-      label={`Collection — ${season.short}`}
+      label={`Collection · ${season.short}`}
       title={season.title}
       intro={season.intro}
       products={productsForSeason(season.slug)}

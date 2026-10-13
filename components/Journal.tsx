@@ -128,10 +128,10 @@ export default function Journal() {
     <section ref={section} id="journal" aria-labelledby="journal-label" className="relative py-[16vh]">
       <div className="grid-12 mb-12">
         <p id="journal-label" className="ui-label col-span-6" data-reveal="lines">
-          (10) — Journal
+          (10) Journal
         </p>
         <p className="ui-label col-span-6 text-right text-stone" data-reveal="lines">
-          Notes from the atelier
+          Notes from the studio
         </p>
       </div>
 

@@ -10,7 +10,7 @@ import { getProduct } from "@/lib/products";
 import { registerNavigator, setTransition } from "@/lib/transition";
 import { canFly, purgeTransitionLayers, takeOff, type Flight } from "@/lib/shared-transition";
 import StairReveal, { type StairRevealHandle } from "./StairReveal";
-import { NAV_OFFSET, useLenis } from "./SmoothScroll";
+import { NAV_OFFSET, clearHash, useLenis } from "./SmoothScroll";
 
 /* ──────────────────────────────────────────────────────────────
    Page transitions. Any click on a link to another page of the site is
@@ -134,7 +134,7 @@ export default function PageTransition() {
       lenis.resize();
       const target = url.hash ? document.querySelector<HTMLElement>(decodeURIComponent(url.hash)) : null;
       lenis.scrollTo(target ?? 0, { immediate: true, force: true, offset: target ? -NAV_OFFSET : 0 });
-      if (url.hash) history.replaceState(null, "", url.pathname + url.hash);
+      clearHash(); // never leave "#section" behind (see SmoothScroll)
       await nextFrame();
     };
 

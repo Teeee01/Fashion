@@ -12,6 +12,11 @@ export const NAV_OFFSET = 72;
 
 const LenisContext = createContext<Lenis | null>(null);
 
+/** Drop any "#section" from the address bar (without scrolling or adding a history entry). */
+export function clearHash() {
+  if (location.hash) history.replaceState(history.state, "", location.pathname + location.search);
+}
+
 /** Access the Lenis instance (e.g. `lenis?.scrollTo("#collection")`, `lenis?.stop()`). */
 export function useLenis() {
   return useContext(LenisContext);
@@ -57,17 +62,19 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       if (url.hash && !target) return; // no such section on this page: let the browser handle it
       e.preventDefault();
       e.stopPropagation();
+      // The address bar keeps no "#section": the home page opens at whatever
+      // section is in the address, so a leftover #contact made a later
+      // refresh or Back jump to the footer on its own.
+      clearHash();
       // While the hero is holding, settle it first; it then scrolls to the target.
       const phase = getIntro().phase;
       if (phase === "done") {
         requestSettle(target);
-        if (url.hash) history.pushState(null, "", url.hash);
         return;
       }
       // While the intro has scrolling locked, links don't move the page.
       if (phase !== "settled") return;
       instance.scrollTo(target ?? 0, { offset: target ? -NAV_OFFSET : 0 });
-      history.pushState(null, "", url.hash || url.pathname);
     };
     document.addEventListener("click", onClick, { capture: true });
 

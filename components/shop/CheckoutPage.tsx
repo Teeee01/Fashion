@@ -136,7 +136,7 @@ export default function CheckoutPage() {
       setOrder(placed);
       clear();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong there. Mind trying again?");
     } finally {
       setPlacing(false);
     }
@@ -157,8 +157,8 @@ export default function CheckoutPage() {
             </h1>
             <p className="body-copy mask mt-8 max-w-[44ch] text-stone">
               <span className="confirm-rise block">
-                Your order is confirmed. A receipt for {formatAmount(order.totals.total, order.currency)} is on its way to {order.email}, and
-                we will write again when your pieces leave the atelier.
+                Your order&apos;s in. We&apos;ve sent a receipt for {formatAmount(order.totals.total, order.currency)} to {order.email}, and
+                we&apos;ll email you again as soon as your pieces ship.
               </span>
             </p>
             <p className="mask mt-12">
@@ -197,13 +197,13 @@ export default function CheckoutPage() {
           <>
             <form onSubmit={submit} className="col-span-12 md:col-span-7" aria-label="Checkout">
               <fieldset className="grid-12 gap-y-8 !px-0">
-                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">01 — Contact</legend>
+                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">01 Contact</legend>
                 <Field label="Email" name="email" type="email" autoComplete="email" value={details.email} onChange={set} />
                 <Field label="Phone" name="phone" type="tel" autoComplete="tel" value={details.phone} onChange={set} />
               </fieldset>
 
               <fieldset className="grid-12 mt-16 gap-y-8 !px-0">
-                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">02 — Shipping address</legend>
+                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">02 Shipping address</legend>
                 <Field label="First name" name="firstName" autoComplete="given-name" value={details.firstName} onChange={set} span="col-span-6" />
                 <Field label="Last name" name="lastName" autoComplete="family-name" value={details.lastName} onChange={set} span="col-span-6" />
                 <Field label="Address" name="address" autoComplete="street-address" value={details.address} onChange={set} />
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
               </fieldset>
 
               <fieldset className="mt-16">
-                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">03 — Delivery</legend>
+                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">03 Delivery</legend>
                 <div className="flex flex-col gap-3">
                   {DELIVERY_OPTIONS.map((d) => (
                     <label
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
               </fieldset>
 
               <fieldset className="mt-16">
-                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">04 — Payment</legend>
+                <legend className="ui-label checkout-rise mb-8 w-full border-b border-hairline pb-4">04 Payment</legend>
                 <div className="flex flex-col gap-3">
                   {(
                     [
@@ -267,7 +267,7 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
-                <p className="ui-label checkout-rise mt-4 text-stone">You will confirm the payment securely on the next step.</p>
+                <p className="ui-label checkout-rise mt-4 text-stone">You'll confirm the payment securely in the next step.</p>
               </fieldset>
 
               {error && (

@@ -17,6 +17,7 @@ export const NAV_LINKS = [
   { label: "Lookbook", href: "/#lookbook" },
   { label: "Atelier", href: "/#atelier" },
   { label: "Journal", href: "/#journal" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/#contact" },
 ];
 

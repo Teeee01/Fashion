@@ -13,8 +13,8 @@ import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
    States, picked from what's under the pointer:
      default → 10px dot
      link    → dot at half size (any <a>, <button> or [data-cursor="link"])
-     view    → 72px disc with "VIEW" ([data-cursor="view"], only when it
-               is or sits inside a real link, so VIEW always goes somewhere)
+     view    → 72px disc with "VIEW" ([data-cursor="view"] on, or inside, a
+               real link with an href; anywhere else it's the plain dot)
      zoom    → 72px disc with "ZOOM" ([data-cursor="zoom"], product images)
      drag    → 72px disc with "DRAG" ([data-cursor="drag"])
      play    → 72px disc with "PLAY" ([data-cursor="play"])
@@ -44,8 +44,10 @@ function stateFor(target: EventTarget | null): CursorState {
   const tagged = target.closest<HTMLElement>("[data-cursor]");
   if (tagged) {
     const value = tagged.dataset.cursor as CursorState;
-    // VIEW promises a destination: without a link it falls back to a plain dot.
-    if (value === "view") return tagged.closest("a[href]") || tagged.querySelector("a[href]") ? "view" : "default";
+    // VIEW promises a destination: only on an actual link (the tagged element
+    // is the <a href>, or sits inside one). Never for a container that merely
+    // holds a link somewhere, so empty space, text and drawings get the dot.
+    if (value === "view") return tagged.closest("a[href]") ? "view" : "default";
     if (value in SCALE) return value;
   }
   if (target.closest("a, button, [role='button'], label, summary")) return "link";
@@ -91,6 +93,7 @@ export default function Cursor() {
     const setState = (next: CursorState) => {
       if (next === current) return;
       current = next;
+      el.dataset.state = next; // handy for checking in the browser
       const text = LABEL[next];
       if (text && label.current) label.current.textContent = text;
       const d = reduced ? DURATION.reduced : DURATION.ui;
@@ -132,10 +135,25 @@ export default function Cursor() {
       requestAnimationFrame(() => setState(stateFor(document.elementFromPoint(lastX, lastY))));
     };
 
+    // Scrolling with a still mouse slides a different element under it:
+    // re-read it (once per frame), so a label from an image that has scrolled
+    // away (e.g. VIEW) doesn't linger over empty space.
+    let queued = false;
+    const onScroll = () => {
+      if (queued || !shown) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        setState(stateFor(document.elementFromPoint(lastX, lastY)));
+      });
+    };
+
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
     return () => {
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", onScroll);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       gsap.killTweensOf([el, disc.current, label.current]);
       recheck.current = () => {};
