@@ -9,10 +9,13 @@ import {
   getIntro,
   isSettledLayout,
   registerIntroTimeline,
+  registerSettleRequest,
   setIntro,
   useIntro,
   type IntroMode,
 } from "@/lib/intro";
+import { SCROLL_MEMORY_KEY } from "@/lib/intro-key";
+import { NAV_OFFSET, useLenis } from "@/components/SmoothScroll";
 import { ribbonState } from "@/lib/ribbon-state";
 import Monogram, { MONOGRAM_SIZE } from "./Monogram";
 import RibbonStage from "./RibbonStage";
@@ -38,12 +41,6 @@ const AT = {
 };
 const TRACE = { total: 1.1, stagger: 0.12 }; // four strokes, 0.12s apart, 1.1s in all
 
-/* Settle sequence, after the entrance and a hold. Seconds from its start:
-   captions out 0 · monogram glides to the nav 0.1 · links cluster 0.15
-   (staggered) · ribbon drifts 0.2 · frosted band 0.3 → ≈1.1s. */
-const HOLD: Record<IntroMode, number> = { full: 0.8, quick: 0.4, reduced: 0.8 };
-const SETTLE_SPEED: Record<IntroMode, number> = { full: 1, quick: 2, reduced: 1 };
-
 /** Only the nav items showing at this screen size (links on desktop, MENU on mobile). */
 const visible = (selector: string) =>
   gsap.utils.toArray<HTMLElement>(selector).filter((el) => el.getClientRects().length > 0);
@@ -56,6 +53,8 @@ export default function Hero() {
   const ribbon = useRef<HTMLDivElement>(null);
   const captions = useRef<HTMLDivElement>(null);
   const needle = useRef<HTMLSpanElement>(null);
+  const cue = useRef<HTMLDivElement>(null);
+  const cueLine = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
     const svg = monogram.current;
@@ -179,73 +178,235 @@ export default function Hero() {
     return registerIntroTimeline(build);
   }, []);
 
-  // After the entrance: hold, then settle into the browsing layout.
+  // ── After the entrance: hold until the first scroll ─────────────────
+  // The hero stays in its full state (scroll locked) with a SCROLL cue.
+  // The first downward scroll intent plays the settle AND glides the page
+  // to the Manifesto; scrolling back up at the very top reverses it.
   const { phase } = useIntro();
-  const settleScheduled = useRef(false);
-  const settleAnims = useRef<gsap.core.Animation[]>([]);
+  const lenis = useLenis();
+  const mode = useRef<"idle" | "hero" | "busy" | "settled">("idle");
+  const anims = useRef<gsap.core.Animation[]>([]);
+  const cueLoop = useRef<gsap.core.Timeline | null>(null);
+  const armed = useRef(false);
+  const teardown = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    if (phase !== "done" || settleScheduled.current) return;
-    settleScheduled.current = true;
-    const { mode } = getIntro();
+    if (phase !== "done" || armed.current || !lenis) return;
+    armed.current = true;
+    const reduced = getIntro().mode === "reduced";
+    const track = <T extends gsap.core.Animation>(a: T) => (anims.current.push(a), a);
 
-    const settle = () => {
-      const links = visible("header.nav .nav-link.nav-item");
-      const logo = document.querySelector<SVGSVGElement>(".nav-logo svg");
-      const band = document.querySelector<HTMLElement>(".nav-band");
-      const done = () => setIntro({ phase: "settled" });
+    const links = () => visible("header.nav .nav-link.nav-item");
+    const logo = () => document.querySelector<SVGSVGElement>(".nav-logo svg");
+    const band = () => document.querySelector<HTMLElement>(".nav-band");
+    const bags = () => visible("header.nav .nav-bag");
+    const manifestoTop = () => {
+      const el = document.querySelector<HTMLElement>("#house");
+      return el ? el.getBoundingClientRect().top + lenis.scroll : window.innerHeight;
+    };
 
-      // Record where everything is now, switch the nav to its settled
-      // layout (logo shown, links clustered), then Flip glides from old to new.
+    // ── SCROLL cue: fades in, its line draws downward and loops ──
+    const showCue = (visibleNow: boolean, delay = 0) => {
+      gsap.to(cue.current, { autoAlpha: visibleNow ? 1 : 0, duration: reduced ? DURATION.reduced : DURATION.ui, delay, ease: EASE.text, overwrite: "auto" });
+      if (visibleNow && !reduced && !cueLoop.current) {
+        cueLoop.current = gsap
+          .timeline({ repeat: -1, repeatDelay: 0.25, delay })
+          .fromTo(cueLine.current, { scaleY: 0, transformOrigin: "50% 0%" }, { scaleY: 1, duration: 0.9, ease: EASE.big })
+          .to(cueLine.current, { scaleY: 0, transformOrigin: "50% 100%", duration: 0.9, ease: EASE.big });
+      }
+      if (!visibleNow) {
+        cueLoop.current?.kill();
+        cueLoop.current = null;
+      }
+    };
+
+    // ── The settle: captions out, M → nav logo (Flip), links cluster (Flip),
+    //    frosted band in, ribbon drifts. Returns its timeline. ──
+    const playSettle = () => {
+      const ls = links();
+      const lg = logo();
       const monogramState = Flip.getState(monogram.current);
-      const linkState = Flip.getState(links);
+      const linkState = Flip.getState(ls);
       flushSync(() => setIntro({ phase: "settling" }));
-
-      const tl = gsap.timeline({ onComplete: done });
-      settleAnims.current.push(tl);
-
-      if (mode === "reduced") {
-        // Reduced motion: cross-fade into the settled layout, 0.3s in total.
+      const tl = track(gsap.timeline());
+      if (reduced) {
         const half = DURATION.reduced / 2;
         return tl
           .to([captions.current, monogram.current], { autoAlpha: 0, duration: half, ease: "none" }, 0)
-          .fromTo([logo, ...links, band, ...visible("header.nav .nav-bag")], { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "none" }, half);
+          .fromTo([lg, ...ls, band(), ...bags()], { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "none" }, half);
       }
-
-      tl.timeScale(SETTLE_SPEED[mode]);
-
-      // 1 · Captions lift away.
       tl.to(captions.current, { opacity: 0, y: -8, duration: 0.4, ease: EASE.text }, 0);
-
-      // 2 · The monogram shrinks and glides into the nav: it is the logo now.
-      if (logo) {
-        tl.add(Flip.from(monogramState, { targets: logo, scale: true, duration: 0.9, ease: EASE.big }), 0.1);
-      }
-
-      // 3 · Links slide from the spread layout into the right-hand cluster.
-      if (links.length) {
-        tl.add(Flip.from(linkState, { duration: 0.55, ease: EASE.big, stagger: STAGGER.nav }), 0.15);
-      }
-
-      // 5 · The ribbon drifts down and right (it keeps rotating).
-      tl.to(
-        ribbon.current,
-        { x: window.innerWidth * 0.04, y: window.innerHeight * 0.06, duration: 0.9, ease: EASE.big },
-        0.2,
-      );
-
-      // 4 · The frosted band fades in behind the nav, and the bag joins the links.
-      tl.fromTo(band, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: EASE.text }, 0.3);
-      tl.fromTo(visible("header.nav .nav-bag"), { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.ui, ease: EASE.text }, 0.6);
-
-      // 6 · Scrolling unlocks when the timeline completes (phase "settled").
+      if (lg) tl.add(Flip.from(monogramState, { targets: lg, scale: true, duration: 0.9, ease: EASE.big }), 0.1);
+      if (ls.length) tl.add(Flip.from(linkState, { duration: 0.55, ease: EASE.big, stagger: STAGGER.nav }), 0.15);
+      tl.to(ribbon.current, { x: window.innerWidth * 0.04, y: window.innerHeight * 0.06, duration: 0.9, ease: EASE.big }, 0.2);
+      tl.fromTo(band(), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: EASE.text }, 0.3);
+      tl.fromTo(bags(), { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.ui, ease: EASE.text }, 0.6);
       return tl;
     };
 
-    settleAnims.current.push(gsap.delayedCall(HOLD[mode], settle));
-  }, [phase]);
+    // Wait until the wheel/touch has been quiet for a moment, so trackpad
+    // momentum from the flick can't carry the page past the Manifesto.
+    let lastInput = 0;
+    const whenQuiet = (fn: () => void) => {
+      const check = () => (performance.now() - lastInput > 220 ? fn() : track(gsap.delayedCall(0.1, check)));
+      check();
+    };
 
-  useEffect(() => () => settleAnims.current.forEach((a) => a.kill()), []);
+    const finishSettled = () => {
+      mode.current = "settled";
+      setIntro({ phase: "settled" }); // unlocks Lenis
+    };
+
+    // ── First scroll (or a link): settle and land on the Manifesto / target ──
+    const settle = (target?: HTMLElement | null) => {
+      if (mode.current !== "hero") return;
+      mode.current = "busy";
+      showCue(false);
+      const tl = playSettle();
+      if (reduced) {
+        // No snapping: cross-fade into the settled layout and let the page scroll.
+        tl.eventCallback("onComplete", () => {
+          finishSettled();
+          if (target) lenis.scrollTo(target, { immediate: true, force: true, offset: -NAV_OFFSET });
+        });
+        return;
+      }
+      const dest = target ? target.getBoundingClientRect().top + lenis.scroll - NAV_OFFSET : manifestoTop();
+      let scrolled = false;
+      let settled = false;
+      const maybeDone = () => scrolled && settled && whenQuiet(finishSettled);
+      tl.eventCallback("onComplete", () => {
+        settled = true;
+        maybeDone();
+      });
+      // The glide runs with Lenis still stopped (so no wheel or trackpad
+      // momentum can add to it); afterwards Lenis is synced to where we landed.
+      const from = { y: window.scrollY };
+      track(
+        gsap.to(from, {
+          y: dest,
+          duration: 1.2,
+          ease: EASE.big,
+          onUpdate: () => window.scrollTo(0, from.y),
+          onComplete: () => {
+            lenis.scrollTo(dest, { immediate: true, force: true });
+            scrolled = true;
+            maybeDone();
+          },
+        }),
+      );
+    };
+
+    // ── Back at the very top, scrolling up: return to the hero ──
+    const unsettle = () => {
+      if (mode.current !== "settled" || reduced) return;
+      mode.current = "busy";
+      lenis.stop();
+      lenis.scrollTo(0, { immediate: true, force: true });
+      const lg = logo();
+      const ls = links();
+      const logoState = lg ? Flip.getState(lg) : null;
+      const linkState = Flip.getState(ls);
+      flushSync(() => setIntro({ phase: "done" }));
+      const tl = track(gsap.timeline({ onComplete: () => whenQuiet(() => { mode.current = "hero"; showCue(true); }) }));
+      if (logoState) tl.add(Flip.from(logoState, { targets: monogram.current, scale: true, duration: 0.9, ease: EASE.big }), 0);
+      if (ls.length) tl.add(Flip.from(linkState, { duration: 0.55, ease: EASE.big, stagger: STAGGER.nav }), 0.05);
+      tl.to(ribbon.current, { x: 0, y: 0, duration: 0.9, ease: EASE.big }, 0.1);
+      tl.to(band(), { autoAlpha: 0, duration: 0.5, ease: EASE.text }, 0.1);
+      tl.to(captions.current, { opacity: 1, y: 0, duration: 0.6, ease: EASE.text }, 0.4);
+    };
+
+    // ── Scroll intent: wheel/trackpad, touch swipes, keyboard ──
+    const down = () => (mode.current === "hero" ? settle() : undefined);
+    // The real scroll position: touch scrolling is native, so Lenis may lag behind it.
+    const up = () => (mode.current === "settled" && window.scrollY <= 2 ? unsettle() : undefined);
+    const onWheel = (e: WheelEvent) => {
+      lastInput = performance.now();
+      if (e.deltaY > 2) down();
+      else if (e.deltaY < -2) up();
+    };
+    let touchY: number | null = null;
+    const onTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0]?.clientY ?? null;
+      lastInput = performance.now();
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      lastInput = performance.now();
+      if (touchY === null) return;
+      const dy = touchY - (e.touches[0]?.clientY ?? touchY);
+      if (dy > 24) {
+        touchY = null;
+        down();
+      } else if (dy < -24) {
+        touchY = null;
+        up();
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName))) return;
+      if (["ArrowDown", "PageDown", " "].includes(e.key)) {
+        if (mode.current === "hero") e.preventDefault();
+        down();
+      } else if (["ArrowUp", "PageUp", "Home"].includes(e.key)) up();
+    };
+
+    // ── Arriving mid-page (refresh or a deep link): skip the hero state ──
+    let restore: HTMLElement | number | null = null;
+    const hashTarget = location.hash ? document.querySelector<HTMLElement>(decodeURIComponent(location.hash)) : null;
+    if (hashTarget) restore = hashTarget;
+    else {
+      try {
+        const saved = Number(sessionStorage.getItem(SCROLL_MEMORY_KEY + location.pathname) ?? 0);
+        sessionStorage.removeItem(SCROLL_MEMORY_KEY + location.pathname);
+        if (saved > window.innerHeight * 0.5) restore = saved;
+      } catch {
+        // No storage: start at the hero.
+      }
+    }
+
+    mode.current = "hero";
+    if (restore !== null) {
+      mode.current = "busy";
+      const tl = playSettle();
+      tl.progress(1);
+      finishSettled();
+      requestAnimationFrame(() =>
+        lenis.scrollTo(restore as HTMLElement | number, {
+          immediate: true,
+          force: true,
+          offset: typeof restore === "number" ? 0 : -NAV_OFFSET,
+        }),
+      );
+    } else {
+      showCue(true, 0.6);
+    }
+
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("keydown", onKey);
+    const unregister = registerSettleRequest((target) => settle(target));
+
+    // These listeners must outlive the phase changes they cause, so they
+    // are removed when the hero unmounts, not when the phase changes.
+    teardown.current = () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
+      unregister();
+    };
+  }, [phase, lenis]);
+
+  useEffect(
+    () => () => {
+      teardown.current?.();
+      anims.current.forEach((a) => a.kill());
+      cueLoop.current?.kill();
+    },
+    [],
+  );
 
   const monogramHidden = isSettledLayout(phase);
 
@@ -272,6 +433,18 @@ export default function Hero() {
           decorative
           className={`hero-monogram block h-full w-auto ${monogramHidden ? "invisible" : ""}`}
         />
+      </div>
+
+      {/* SCROLL cue: shown while the hero holds; its line draws down and loops. */}
+      <div
+        ref={cue}
+        aria-hidden="true"
+        className="scroll-cue hero-fg pointer-events-none absolute left-1/2 top-[68svh] flex -translate-x-1/2 flex-col items-center gap-2 md:bottom-pad md:top-auto"
+      >
+        <span className="ui-label">Scroll</span>
+        <span className="relative block h-8 w-px overflow-hidden">
+          <span ref={cueLine} className="absolute inset-0 bg-ink" style={{ transform: "scaleY(0)" }} />
+        </span>
       </div>
 
       <div

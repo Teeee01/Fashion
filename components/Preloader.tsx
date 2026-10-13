@@ -50,13 +50,13 @@ export default function Preloader() {
   const { phase } = useIntro();
   const lenis = useLenis();
 
-  // Scrolling stays locked through the preloader, the entrance and the
-  // hero's settle sequence; it unlocks once the page has settled.
+  // Scrolling stays locked through the preloader, the entrance and while
+  // the hero holds; it unlocks once the page has settled. (During
+  // "settling" the hero drives Lenis itself.)
   useEffect(() => {
     if (!lenis) return;
-    if (phase === "settled") {
-      lenis.start();
-    } else {
+    if (phase === "settled") lenis.start();
+    else if (phase !== "settling") {
       if (phase === "loading") lenis.scrollTo(0, { immediate: true, force: true });
       lenis.stop();
     }

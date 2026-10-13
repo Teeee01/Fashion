@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
-import { getIntro } from "@/lib/intro";
+import { getIntro, setIntro } from "@/lib/intro";
 import { getProduct } from "@/lib/products";
 import { setTransition } from "@/lib/transition";
 import StairReveal, { type StairRevealHandle } from "./StairReveal";
@@ -113,6 +113,8 @@ export default function PageTransition() {
       await play(cover);
 
       setTransition({ phase: "swapping" });
+      // Leaving the holding hero: the next page uses the settled layout.
+      if (getIntro().phase === "done") setIntro({ phase: "settled" });
       await goTo(url);
       await settleScroll(url);
 
@@ -144,6 +146,7 @@ export default function PageTransition() {
       await play(gsap.fromTo(veil.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: reduced ? DURATION.reduced : 0.4, ease: EASE.text }));
 
       setTransition({ phase: "swapping" });
+      if (getIntro().phase === "done") setIntro({ phase: "settled" });
       await goTo(url);
       await settleScroll(url);
 

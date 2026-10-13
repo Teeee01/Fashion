@@ -9,7 +9,8 @@ import { INTRO_SEEN_KEY } from "./intro-key";
    animate in after it.
      loading   → preloader is on screen, scroll is locked
      revealing → the overlay has gone; the page entrance is playing
-     done      → the entrance has finished (the hero then holds, then settles)
+     done      → the entrance has finished: the hero holds, scroll locked,
+                 until the first scroll (or a nav link) settles it
      settling  → the nav has switched to its settled layout and is gliding there
      settled   → everything is in place and scrolling is unlocked
    `mode` says which version is playing so the reveal can match it:
@@ -55,6 +56,26 @@ export function registerIntroTimeline(builder: IntroBuilder) {
   return () => {
     if (introBuilder === builder) introBuilder = null;
   };
+}
+
+/* ── Settle on request ───────────────────────────────────────────
+   While the hero is holding (phase "done"), a nav or anchor link can ask
+   it to settle and then scroll to `target`. The hero registers the handler. */
+type SettleRequest = (target?: HTMLElement | null) => void;
+let settleRequest: SettleRequest | null = null;
+
+export function registerSettleRequest(fn: SettleRequest) {
+  settleRequest = fn;
+  return () => {
+    if (settleRequest === fn) settleRequest = null;
+  };
+}
+
+/** Ask the holding hero to settle (and scroll to `target`). Returns false if nothing handled it. */
+export function requestSettle(target?: HTMLElement | null) {
+  if (!settleRequest) return false;
+  settleRequest(target);
+  return true;
 }
 
 /** True once the nav is in (or gliding into) its settled layout. */

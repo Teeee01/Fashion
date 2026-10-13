@@ -208,6 +208,11 @@ html[data-intro-seen] .preloader-count {
   transform: scaleY(0);
 }
 
+.scroll-cue {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .js .nav-item,
 .js .nav-bag {
   opacity: 0;
