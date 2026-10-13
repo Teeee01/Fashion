@@ -17,10 +17,12 @@ type MonogramProps = {
   /** Shared id so GSAP Flip can glide one monogram into the other. */
   flipId?: string;
   title?: string;
+  /** Purely visual (e.g. the hero copy before it hands over to the nav logo). */
+  decorative?: boolean;
 };
 
 const Monogram = forwardRef<SVGSVGElement, MonogramProps>(function Monogram(
-  { className = "", variant = "draw", flipId, title = "Maison Sève monogram" },
+  { className = "", variant = "draw", flipId, title = "Maison Sève home", decorative = false },
   ref,
 ) {
   return (
@@ -29,8 +31,10 @@ const Monogram = forwardRef<SVGSVGElement, MonogramProps>(function Monogram(
       viewBox={MONOGRAM_VIEWBOX}
       className={`monogram ${className}`}
       data-flip-id={flipId}
-      role="img"
-      aria-label={title}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : title}
+      aria-hidden={decorative || undefined}
+      focusable="false"
     >
       {OUTLINES.map((d, i) =>
         variant === "solid" ? (

@@ -52,9 +52,9 @@ export default function Cursor() {
   const disc = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
 
-  // Only on devices with a real mouse; never on touch screens.
+  // Only on devices with a real mouse, and not on phone-sized screens.
   useEffect(() => {
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 768px)");
     const update = () => setEnabled(fine.matches);
     update();
     fine.addEventListener("change", update);

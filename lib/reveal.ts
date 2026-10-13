@@ -1,6 +1,6 @@
 "use client";
 
-import { gsap, SplitText } from "./gsap";
+import { gsap, ScrollTrigger, SplitText } from "./gsap";
 import { DURATION, EASE, STAGGER } from "./motion";
 
 /**
@@ -28,24 +28,41 @@ export function clipRise(media: Element | null, photo: Element | null, reduced: 
 /**
  * The house text reveal on scroll: lines rise from their masks
  * (yPercent 100 → 0, 0.9s, 0.08s apart) when `el` comes into view.
- * Re-splits on resize. Returns the SplitText so the caller can revert it.
+ * The text is only split just before it reaches the screen, so pages
+ * don't pay for every split at load. Returns an object to revert it.
  */
 export function riseLinesOnScroll(el: HTMLElement | null, reduced: boolean, start = "top 85%") {
-  return SplitText.create(el, {
-    type: "lines",
-    mask: "lines",
-    linesClass: "split-line",
-    autoSplit: true,
-    onSplit: (self) =>
-      gsap.fromTo(
-        self.lines,
-        reduced ? { autoAlpha: 0 } : { yPercent: 100 },
-        {
-          ...(reduced
-            ? { autoAlpha: 1, duration: DURATION.reduced, ease: "none" }
-            : { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
-          scrollTrigger: { trigger: el, start, once: true },
-        },
-      ),
-  });
+  let split: SplitText | null = null;
+  const prepare = () => {
+    if (split || !el) return;
+    split = SplitText.create(el, {
+      type: "lines",
+      mask: "lines",
+      linesClass: "split-line",
+      autoSplit: true,
+      // No extra ARIA: screen readers simply read the text.
+      aria: "none",
+      onSplit: (self) =>
+        gsap.fromTo(
+          self.lines,
+          reduced ? { autoAlpha: 0 } : { yPercent: 100 },
+          {
+            ...(reduced
+              ? { autoAlpha: 1, duration: DURATION.reduced, ease: "none" }
+              : { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
+            scrollTrigger: { trigger: el, start, once: true },
+          },
+        ),
+    });
+  };
+  // Split a little before the text scrolls into view (or straight away if
+  // it's already close).
+  const early = ScrollTrigger.create({ trigger: el, start: "top 140%", once: true, onEnter: prepare });
+  if (el && el.getBoundingClientRect().top < window.innerHeight * 1.4) prepare();
+  return {
+    revert() {
+      early.kill();
+      split?.revert();
+    },
+  };
 }

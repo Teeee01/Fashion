@@ -110,6 +110,7 @@ export function revealText(target: gsap.DOMTarget, options: RevealOptions = {}) 
     mask: by,
     linesClass: "split-line",
     wordsClass: "split-word",
+    aria: "none",
     // Re-split on resize / font load so line breaks stay correct
     // (only for standalone reveals; timelines are built once).
     autoSplit: !timeline,

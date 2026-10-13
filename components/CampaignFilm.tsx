@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { gsap } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
 import StairReveal, { type StairRevealHandle } from "./StairReveal";
 import { useLenis } from "./SmoothScroll";
@@ -72,6 +72,19 @@ export default function CampaignFilm() {
         return `inset(${y}px ${x}px ${y}px ${x}px)`;
       };
 
+      // The loop only downloads and plays while the section is on screen.
+      ScrollTrigger.create({
+        trigger: section.current,
+        start: "top bottom",
+        end: "bottom top",
+        onToggle: (self) => {
+          const v = loop.current;
+          if (!v) return;
+          if (self.isActive && !openRef.current) v.play().catch(() => {});
+          else v.pause();
+        },
+      });
+
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
@@ -103,18 +116,26 @@ export default function CampaignFilm() {
     });
   }, [full]);
 
-  // The background loop rests while the full film is open.
+  // The background loop rests while the full film is open (and resumes
+  // afterwards only if the section is still on screen).
+  const openRef = useRef(false);
   useEffect(() => {
+    openRef.current = open;
     if (prefersReducedMotion()) return;
-    if (open) loop.current?.pause();
-    else loop.current?.play().catch(() => {});
+    const v = loop.current;
+    if (!v) return;
+    if (open) v.pause();
+    else if (section.current) {
+      const r = section.current.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < window.innerHeight) v.play().catch(() => {});
+    }
   }, [open]);
 
   return (
-    <section ref={section} id="film" aria-labelledby="film-label" className="relative h-[300svh]">
+    <section ref={section} id="film" aria-labelledby="film-label" className="relative h-[300svh] motion-reduce:h-svh">
       <div
         ref={stage}
-        className="sticky top-0 h-svh overflow-hidden"
+        className="sticky top-0 h-svh overflow-hidden motion-reduce:static"
         data-cursor={full ? "play" : undefined}
         onClick={() => full && setOpen(true)}
       >
@@ -122,11 +143,10 @@ export default function CampaignFilm() {
           <video
             ref={loop}
             className="h-full w-full object-cover"
-            autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             poster={FILM.poster}
             aria-hidden="true"
           >
@@ -135,10 +155,12 @@ export default function CampaignFilm() {
         </div>
 
         <div ref={kicker} className="pointer-events-none absolute inset-x-pad top-[112px] flex justify-between">
-          <p id="film-label" className="ui-label">
+          <p id="film-label" className="ui-label" data-reveal="lines">
             (06) — Campaign Film
           </p>
-          <p className="ui-label text-stone">AW26</p>
+          <p className="ui-label text-stone" data-reveal="lines">
+            AW26
+          </p>
         </div>
 
         <button

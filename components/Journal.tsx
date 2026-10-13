@@ -127,10 +127,12 @@ export default function Journal() {
   return (
     <section ref={section} id="journal" aria-labelledby="journal-label" className="relative py-[16vh]">
       <div className="grid-12 mb-12">
-        <p id="journal-label" className="ui-label col-span-6">
+        <p id="journal-label" className="ui-label col-span-6" data-reveal="lines">
           (07) — Journal
         </p>
-        <p className="ui-label col-span-6 text-right text-stone">Notes from the atelier</p>
+        <p className="ui-label col-span-6 text-right text-stone" data-reveal="lines">
+          Notes from the atelier
+        </p>
       </div>
 
       <ul ref={list} className="journal-list px-pad" onPointerLeave={() => setActive(null)}>
@@ -162,7 +164,7 @@ export default function Journal() {
         >
           {ARTICLES.map((a) => (
             <div key={a.number} className="journal-thumb-img absolute inset-0 opacity-0">
-              <EditorialImage src={a.image} alt="" label={a.category} sizes={`${THUMB.w}px`} />
+              <EditorialImage src={a.image} alt={a.alt} label={a.category} sizes={`${THUMB.w}px`} />
             </div>
           ))}
         </div>

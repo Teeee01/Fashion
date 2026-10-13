@@ -213,7 +213,7 @@ export default function PageTransition() {
       <div ref={veil} className="page-veil pointer-events-none fixed inset-0 z-[1290] bg-ivory" aria-hidden="true" />
       <div ref={clone} className="page-clone pointer-events-none fixed z-[1300] overflow-hidden bg-loader-grey" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={cloneImg} alt="" className="h-full w-full object-cover" />
+        <img ref={cloneImg} alt="Product image, enlarging" className="h-full w-full object-cover" />
       </div>
     </>,
     document.body,

@@ -46,10 +46,13 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
   const box = useRef<HTMLDivElement>(null);
   const [renderer, setRenderer] = useState<"pending" | "webgl" | "video">("pending");
   const [slats, setSlats] = useState(260);
+  const [mobile, setMobile] = useState(false);
   const [still, setStill] = useState(false);
 
   useEffect(() => {
-    setSlats(window.matchMedia("(max-width: 767px)").matches ? 140 : 260);
+    const phone = window.matchMedia("(max-width: 767px)").matches;
+    setMobile(phone);
+    setSlats(phone ? 140 : 260);
     setStill(prefersReducedMotion());
     setRenderer(supportsWebGL() ? "webgl" : "video");
   }, []);
@@ -72,7 +75,8 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
         const t = ribbonState.outro;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const startX = vw * (vw < 768 ? 0.34 : 0.22);
+        // Same start as the CSS for .ribbon-video (behind the monogram on phones).
+        const startX = vw < 768 ? vw * 0.13 + vh * 0.0868 : vw * 0.22;
         const dx = (ribbonState.outroX * vw - startX) * t;
         const dy = (ribbonState.outroY - 0.5) * vh * t;
         v.style.transform = t > 0 ? `translate(${dx}px, ${dy}px) scale(${1 - 0.7 * t})` : "";
@@ -106,6 +110,7 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
             slats={slats}
             frameloop={active ? "always" : "never"}
             still={still}
+            mobile={mobile}
             onReady={markLoaded}
           />
         </WebGLBoundary>

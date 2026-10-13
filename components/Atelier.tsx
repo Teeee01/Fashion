@@ -71,7 +71,7 @@ export default function Atelier() {
 
         <div className="col-span-12 flex flex-col justify-between gap-16 md:col-span-6 md:col-start-7">
           <div>
-            <p id="atelier-label" className="ui-label mb-10">
+            <p id="atelier-label" className="ui-label mb-10" data-reveal="lines">
               (05) — Atelier
             </p>
             <p ref={text} className="max-w-[24ch] font-display text-[28px] leading-[1.15] tracking-[-0.01em] md:text-[40px]">
@@ -86,7 +86,11 @@ export default function Atelier() {
       <dl ref={stats} className="grid-12 mt-[14vh] gap-y-10">
         {STATS.map((stat) => (
           <div key={stat.label} className="col-span-12 flex flex-col border-t border-hairline pt-5 md:col-span-4">
-            <dt className="ui-label order-2 mt-3 text-stone">{stat.label}</dt>
+            <dt className="ui-label mask order-2 mt-3 text-stone">
+              <span className="block" data-reveal="block">
+                {stat.label}
+              </span>
+            </dt>
             <dd
               className="stat-number order-1 font-display text-[64px] leading-none tracking-[-0.02em] tabular-nums md:text-[96px]"
               data-value={stat.value ?? undefined}

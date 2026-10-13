@@ -8,7 +8,7 @@ import { isSettledLayout, useIntro } from "@/lib/intro";
 import Monogram from "@/components/hero/Monogram";
 import MobileMenu from "./MobileMenu";
 import { bag, bagCount, useBag } from "@/lib/bag";
-import { DURATION } from "@/lib/motion";
+import { DURATION, prefersReducedMotion } from "@/lib/motion";
 import { useLenis } from "./SmoothScroll";
 
 export const NAV_LINKS = [
@@ -54,6 +54,10 @@ export default function Nav() {
   const show = (visible: boolean) => {
     if (hidden.current === !visible) return;
     hidden.current = !visible;
+    if (prefersReducedMotion()) {
+      gsap.to(header.current, { autoAlpha: visible ? 1 : 0, duration: DURATION.reduced, ease: "none", overwrite: "auto" });
+      return;
+    }
     gsap.to(header.current, { yPercent: visible ? 0 : -100, duration: 0.5, ease: EASE.big, overwrite: "auto" });
   };
 
@@ -88,10 +92,9 @@ export default function Nav() {
       >
         <Link
           href="/"
-          aria-label="Maison Sève, home"
           className={`nav-logo pointer-events-auto absolute left-pad top-0 h-[32px] ${settled ? "" : "invisible"}`}
         >
-          <Monogram variant="solid" flipId="monogram" className="h-full w-auto" title="Maison Sève" />
+          <Monogram variant="solid" flipId="monogram" className="h-full w-auto" title="Maison Sève home" />
         </Link>
 
         <ul className={`hidden w-full md:flex ${settled ? "justify-end gap-[28px]" : "justify-between"}`}>

@@ -211,6 +211,7 @@ export default function Hero() {
       <Monogram
         ref={monogram}
         flipId="monogram"
+        decorative
         className={`hero-fg absolute left-[13vw] top-1/2 h-[22vh] w-auto -translate-y-1/2 ${
           monogramHidden ? "invisible" : ""
         }`}

@@ -212,11 +212,11 @@ export default function SignatureCoat() {
   }, []);
 
   return (
-    <section ref={section} id="signature" aria-labelledby="signature-title" className="relative h-[300svh]">
+    <section ref={section} id="signature" aria-labelledby="signature-title" className="relative h-[300svh] motion-reduce:h-svh">
       <h2 id="signature-title" className="sr-only">
         The signature coat
       </h2>
-      <div className="sticky top-0 h-svh overflow-hidden">
+      <div className="sticky top-0 h-svh overflow-hidden motion-reduce:static">
         {/* The coat: full-screen photo, framed down to a small centred window to start. */}
         <div ref={media} className="coat-media absolute inset-0" data-cursor="view">
           <div ref={photo} className="absolute inset-0">

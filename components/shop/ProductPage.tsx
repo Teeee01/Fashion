@@ -60,7 +60,7 @@ export default function ProductPage({ product, season }: { product: Product; sea
   ];
 
   return (
-    <main className="grid-12 gap-y-12 pb-[16vh] pt-[96px] md:pt-[110px]">
+    <main id="main" tabIndex={-1} className="grid-12 gap-y-12 pb-[16vh] pt-[96px] md:pt-[110px]">
       {/* Images, stacked */}
       <div className="col-span-12 flex flex-col gap-gutter md:col-span-7">
         {product.images.map((im, i) => (

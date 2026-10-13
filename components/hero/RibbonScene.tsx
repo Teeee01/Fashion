@@ -36,13 +36,23 @@ export type RibbonSceneProps = {
   frameloop: "always" | "never";
   /** Reduced motion: hold still and skip the washed-out entrance. */
   still: boolean;
+  /** Phones (< 768px): a smaller ribbon, centred behind the monogram. */
+  mobile: boolean;
   /** Called once the first frame has been drawn. */
   onReady: () => void;
 };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) {
+/** Phones: ribbon width as a fraction of the screen height. */
+const MOBILE_WIDTH = 0.16;
+/** The hero monogram: 13vw from the left, 22vh tall, glyph width ÷ height. */
+const MONOGRAM = { left: 0.13, height: 0.22, aspect: 1230 / 1558 };
+/** Horizontal centre of the hero monogram, as a fraction of screen width. */
+export const monogramCentre = (screenAspect: number) =>
+  MONOGRAM.left + (MONOGRAM.height * MONOGRAM.aspect) / (2 * screenAspect);
+
+function Ribbon({ slats, still, mobile, onReady }: Omit<RibbonSceneProps, "frameloop">) {
   const group = useRef<THREE.Group>(null);
   const mesh = useRef<THREE.InstancedMesh>(null);
   const ambient = useRef<THREE.AmbientLight>(null);
@@ -57,13 +67,14 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   // based on the screen height so the ribbon looks the same either way.
   const screenHeight = viewport.height / CANVAS_OVERSCAN;
   const length = viewport.height * 1.4; // runs off the top and bottom
-  const width = screenHeight * (viewport.aspect * CANVAS_OVERSCAN < 1 ? 0.22 : 0.26);
+  const width = screenHeight * (mobile ? MOBILE_WIDTH : 0.26);
   const pitch = length / slats;
   const radius = width * 0.16; // a loose spiral, not a flat twist
   // Starts left-centre (behind the monogram) and travels to the right side
   // of the screen as the manifesto scrolls by.
-  const mobile = viewport.aspect * CANVAS_OVERSCAN < 1;
-  const xAt = (p: number) => -viewport.width / 2 + viewport.width * lerp(mobile ? 0.34 : 0.22, mobile ? 0.66 : 0.74, p);
+  // On phones it starts exactly centred behind the monogram.
+  const start = mobile ? monogramCentre(viewport.aspect * CANVAS_OVERSCAN) : 0.22;
+  const xAt = (p: number) => -viewport.width / 2 + viewport.width * lerp(start, mobile ? 0.66 : 0.74, p);
 
   const geometry = useMemo(
     () => new THREE.BoxGeometry(width, pitch * SLAT_FILL, width * 0.012),
@@ -141,7 +152,7 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   );
 }
 
-export default function RibbonScene({ slats, frameloop, still, onReady }: RibbonSceneProps) {
+export default function RibbonScene({ slats, frameloop, still, mobile, onReady }: RibbonSceneProps) {
   return (
     <Canvas
       frameloop={still ? "demand" : frameloop}
@@ -151,7 +162,7 @@ export default function RibbonScene({ slats, frameloop, still, onReady }: Ribbon
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ position: "absolute", inset: 0 }}
     >
-      <Ribbon key={slats} slats={slats} still={still} onReady={onReady} />
+      <Ribbon key={slats} slats={slats} still={still} mobile={mobile} onReady={onReady} />
     </Canvas>
   );
 }

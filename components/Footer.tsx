@@ -65,7 +65,7 @@ export default function Footer() {
     let split: SplitText | undefined;
     const ctx = gsap.context(() => {
       // Letters rise one by one from the wordmark's mask.
-      split = SplitText.create(el, { type: "chars", charsClass: "wordmark-char" });
+      split = SplitText.create(el, { type: "chars", charsClass: "wordmark-char", aria: "hidden" });
       fit(); // splitting into letters changes spacing slightly; re-fit
       gsap.fromTo(
         split.chars,
@@ -140,13 +140,18 @@ export default function Footer() {
     <footer ref={footer} id="contact" className="footer relative overflow-hidden pt-[18vh]">
       {/* Newsletter */}
       <div className="grid-12 gap-y-8">
-        <p className="col-span-12 max-w-[22ch] font-display text-[32px] leading-[1.1] tracking-[-0.01em] md:col-span-6 md:text-[40px]">
+        <p
+          className="col-span-12 max-w-[22ch] font-display text-[32px] leading-[1.1] tracking-[-0.01em] md:col-span-6 md:text-[40px]"
+          data-reveal="lines"
+        >
           Letters from the atelier, four times a year.
         </p>
         <form className="col-span-12 self-end md:col-span-5 md:col-start-8" onSubmit={onSubmit} noValidate={false}>
-          <label htmlFor="newsletter-email" className="ui-label mb-4 block text-stone">
-            Email address
-          </label>
+          <span className="mask mb-4">
+            <label htmlFor="newsletter-email" className="ui-label block text-stone" data-reveal="block">
+              Email address
+            </label>
+          </span>
           <div className="newsletter-field relative flex items-center border-b border-hairline">
             <input
               id="newsletter-email"
@@ -174,17 +179,23 @@ export default function Footer() {
       <nav aria-label="Footer" className="grid-12 mt-[14vh] gap-y-10">
         {COLUMNS.map((col) => (
           <div key={col.title} className="col-span-6 md:col-span-3">
-            <p className="ui-label mb-5 text-stone">{col.title}</p>
+            <p className="ui-label mask mb-5 text-stone">
+              <span className="block" data-reveal="block">
+                {col.title}
+              </span>
+            </p>
             <ul className="space-y-2.5">
               {col.links.map((link) => (
-                <li key={link.label} className="ui-label">
-                  {link.href ? (
-                    <Link href={link.href} className="nav-link relative inline-block">
-                      {link.label}
-                    </Link>
-                  ) : (
-                    <span className="text-stone/70">{link.label}</span>
-                  )}
+                <li key={link.label} className="ui-label mask">
+                  <span className="block" data-reveal="block">
+                    {link.href ? (
+                      <Link href={link.href} className="nav-link relative inline-block">
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <span className="text-stone">{link.label}</span>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -194,10 +205,16 @@ export default function Footer() {
 
       {/* Bottom row */}
       <div className="mt-[12vh] flex items-baseline justify-between px-pad">
-        <p className="ui-label text-stone">© 2026 Maison Sève</p>
-        <button type="button" onClick={backToTop} className="nav-link ui-label relative">
-          Back to top ↑
-        </button>
+        <p className="ui-label mask text-stone">
+          <span className="block" data-reveal="block">
+            © 2026 Maison Sève
+          </span>
+        </p>
+        <span className="mask">
+          <button type="button" onClick={backToTop} className="nav-link ui-label relative block" data-reveal="block">
+            Back to top ↑
+          </button>
+        </span>
       </div>
 
       {/* Wordmark: exactly the screen's width; the ribbon turns behind it. */}
@@ -205,10 +222,10 @@ export default function Footer() {
         <p
           ref={wordmark}
           className="wordmark inline-block whitespace-nowrap font-display uppercase leading-[0.82] tracking-[-0.02em]"
-          aria-label="Maison Sève"
         >
           {WORDMARK}
         </p>
+        <span className="sr-only">Maison Sève</span>
       </div>
     </footer>
   );

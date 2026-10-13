@@ -20,4 +20,9 @@ export function registerGsap() {
 
 registerGsap();
 
+// With "?debug" in the address, expose GSAP for checking animations in the console.
+if (typeof window !== "undefined" && window.location.search.includes("debug")) {
+  (window as unknown as { __seve: object }).__seve = { gsap, ScrollTrigger };
+}
+
 export { gsap, ScrollTrigger, SplitText, Flip, CustomEase };

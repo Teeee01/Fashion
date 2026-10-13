@@ -63,7 +63,7 @@ export default function Collection() {
 
         let cleanup: (() => void) | undefined;
 
-        if (desktop) {
+        if (desktop && !reduced) {
           // ── Pin and travel horizontally ──
           const distance = () => (track.current ? track.current.scrollWidth - window.innerWidth : 0);
           const travel = gsap.to(track.current, {
@@ -74,7 +74,7 @@ export default function Collection() {
               pin: true,
               start: "top top",
               end: () => `+=${distance()}`,
-              scrub: reduced ? true : 0.6,
+              scrub: 0.6,
               invalidateOnRefresh: true,
               onUpdate: (self) => gsap.set(progress.current, { scaleX: self.progress }),
             },
@@ -103,7 +103,7 @@ export default function Collection() {
             }
           });
         } else {
-          // ── Mobile: native swipe row; the progress line follows it ──
+          // ── Phones (and reduced motion): a native swipe row; the progress line follows it ──
           cards.forEach((card, i) => {
             const reveal = revealLook(card);
             ScrollTrigger.create({
@@ -142,20 +142,22 @@ export default function Collection() {
         <div ref={track} className="collection-track md:flex md:items-stretch md:gap-[2vw] md:px-pad">
           {/* Intro: first in the row on desktop, so it travels away with the looks. */}
           <div className="collection-intro mb-10 flex flex-col justify-between px-pad md:mb-0 md:shrink-0 md:px-0 md:pr-[4vw]">
-            <p className="ui-label mb-8 md:mb-0">(02) — New Collection</p>
+            <p className="ui-label mb-8 md:mb-0" data-reveal="lines">(02) — New Collection</p>
             <div>
               <h2 id="collection-title" ref={headline} className="headline">
                 {HEADLINE}
               </h2>
-              <p className="body-copy mt-6 text-stone">Autumn–Winter 2026. Eight looks for women and men, cut in wool, silk and linen.</p>
-              <Link href="/collections/aw26" className="nav-link ui-label relative mt-8 inline-block">
-                View the collection
-              </Link>
+              <p className="body-copy mt-6 text-stone" data-reveal="lines">Autumn–Winter 2026. Eight looks for women and men, cut in wool, silk and linen.</p>
+              <span className="mask mt-8">
+                <Link href="/collections/aw26" className="nav-link ui-label relative inline-block" data-reveal="block">
+                  View the collection
+                </Link>
+              </span>
             </div>
           </div>
 
           <div ref={row} className="look-row flex gap-[2vw]">
-            {LOOKS.map((look, i) => (
+            {LOOKS.map((look) => (
               <article key={look.number} className="look shrink-0" data-cursor="view">
                 <div className="look-media relative aspect-[3/4] overflow-hidden bg-loader-grey">
                   <div className="look-photo absolute inset-0">
@@ -165,7 +167,6 @@ export default function Collection() {
                         alt={look.alt}
                         label={`Look ${look.number}`}
                         sizes="(max-width: 767px) 78vw, 28vw"
-                        priority={i < 2}
                       />
                     </div>
                   </div>

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Flip, gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER, prefersReducedMotion } from "@/lib/motion";
 import { usePageReveal } from "@/lib/transition";
+import { clipRise } from "@/lib/reveal";
 import { CATEGORIES, type Category, type Product, type Season } from "@/lib/products";
 import ProductCard from "./ProductCard";
 
@@ -30,26 +31,43 @@ export default function CollectionPage({ season, products }: { season: Season; p
 
   usePageReveal(() => {
     const reduced = prefersReducedMotion();
-    const split = SplitText.create(title.current, { type: "lines", mask: "lines" });
+    const split = SplitText.create(title.current, { type: "lines", mask: "lines", aria: "none" });
     const rise = header.current?.querySelectorAll(".collection-rise") ?? [];
     const cards = gsap.utils.toArray<HTMLElement>(".product-item", grid.current);
-    const tl = gsap.timeline({ delay: 0.1 });
-    if (reduced) {
-      gsap.set(rise, { yPercent: 0 });
-      tl.fromTo([split.lines, ...cards], { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.reduced, ease: "none" });
-    } else {
-      tl.fromTo(split.lines, { yPercent: 100 }, { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines })
-        .to(rise, { yPercent: 0, duration: DURATION.ui, ease: EASE.text, stagger: STAGGER.nav }, 0.3);
-      // Cards rise in as they come into view.
+    // Everything made here is cleaned up together if the page changes.
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ delay: 0.1 });
+      if (reduced) {
+        gsap.set(rise, { yPercent: 0 });
+        gsap.set(cards.map((c) => c.querySelector(".product-meta")), { y: 0, yPercent: 0 });
+        tl.fromTo(split.lines, { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.reduced, ease: "none" });
+      } else {
+        tl.fromTo(split.lines, { yPercent: 100 }, { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines })
+          .to(rise, { yPercent: 0, duration: DURATION.ui, ease: EASE.text, stagger: STAGGER.nav }, 0.3);
+      }
+      // Cards: the image opens bottom → top (clip-path) as each comes into
+      // view, then its name and price rise from their mask.
       ScrollTrigger.batch(cards, {
         start: "top 92%",
         once: true,
         onEnter: (batch) =>
-          gsap.fromTo(batch, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.columns }),
+          batch.forEach((card, i) => {
+            const media = card.querySelector("[data-shared-source]");
+            const reveal = clipRise(media, media?.firstElementChild ?? null, reduced);
+            if (!reduced) {
+              reveal.fromTo(
+                card.querySelector(".product-meta"),
+                { y: 0, yPercent: 100 },
+                { yPercent: 0, duration: DURATION.text, ease: EASE.text },
+                0.5,
+              );
+            }
+            reveal.delay(i * STAGGER.columns).play();
+          }),
       });
-    }
+    });
     return () => {
-      tl.kill();
+      ctx.revert();
       split.revert();
     };
   });
@@ -81,7 +99,7 @@ export default function CollectionPage({ season, products }: { season: Season; p
   };
 
   return (
-    <main className="pt-[160px]">
+    <main id="main" tabIndex={-1} className="pt-[160px]">
       <div ref={header} className="grid-12 items-end gap-y-10 pb-[10vh]">
         <div className="col-span-12 md:col-span-7">
           <p className="ui-label mask mb-6">

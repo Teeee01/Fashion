@@ -48,7 +48,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const link = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
-      if (!link || link.target === "_blank") return;
+      if (!link || link.target === "_blank" || link.classList.contains("skip-link")) return;
       const url = new URL(link.href, location.href);
       if (url.origin !== location.origin || url.pathname !== location.pathname) return;
 

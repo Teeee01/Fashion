@@ -120,6 +120,12 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* Italic accents in Bodoni use the separately loaded italic cut. */
+.headline.italic,
+.font-display.italic {
+  font-family: var(--font-bodoni-italic), var(--font-display);
+}
+
 /* 1px divider line. */
 @utility hairline {
   border-color: var(--hairline);
@@ -229,9 +235,10 @@ html[data-intro-seen] .preloader-count {
   mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
 }
 
+/* Phones: centred behind the monogram (13vw + half its 22vh × 0.79 width). */
 @media (max-width: 767px) {
   .ribbon-video {
-    left: calc(34vw - 30svh);
+    left: calc(13vw + 8.68svh - 30svh);
   }
 }
 
@@ -269,12 +276,39 @@ html[data-intro-seen] .preloader-count {
   transform-origin: 0% 50%;
 }
 
-.nav-link:focus-visible,
-.nav-menu-btn:focus-visible,
-.nav-logo:focus-visible,
-.menu-link:focus-visible {
-  outline: 1px solid currentColor;
-  outline-offset: 4px;
+/* Keyboard focus, everywhere: a 1px ink outline, 3px clear of the element.
+   On ink panels (menu, film player, bag button) it turns ivory to stay visible. */
+:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.mobile-menu :focus-visible,
+.film-player :focus-visible,
+.bg-ink:focus-visible,
+[data-menu-open] :focus-visible {
+  outline-color: var(--ivory);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip link: hidden until focused from the keyboard. */
+.skip-link {
+  position: fixed;
+  left: var(--pad-x);
+  top: 12px;
+  z-index: 3000;
+  padding: 10px 14px;
+  background: var(--ink);
+  color: var(--ivory);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+  outline-color: var(--ivory);
 }
 
 /* Mobile menu panel stays out of sight until opened. */
@@ -291,6 +325,13 @@ html[data-intro-seen] .preloader-count {
 
 .look {
   width: min(28vw, calc((100svh - 260px) * 0.75));
+}
+
+/* Portrait tablets: 28vw is too small on a tall screen. */
+@media (min-width: 768px) and (orientation: portrait) {
+  .look {
+    width: min(42vw, calc((100svh - 260px) * 0.75));
+  }
 }
 
 /* Hover: the photo slowly leans in. */
@@ -513,4 +554,34 @@ html[data-intro-seen] .preloader-count {
 /* The active filter keeps its underline. */
 .nav-link.is-active::after {
   transform: scaleX(1);
+}
+
+/* Reduced motion on wide screens: the collection is a swipe row too (no
+   scroll-scrubbed pin), with the intro panel at its left. */
+@media (prefers-reduced-motion: reduce) and (min-width: 768px) {
+  .collection-track {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .look-row {
+    min-width: 0;
+    flex: 1;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .look {
+    scroll-snap-align: start;
+  }
+}
+
+/* Collection page cards: hidden until revealed by scroll. */
+.js .product-item [data-shared-source] {
+  clip-path: inset(100% 0 0 0);
+}
+
+.js .product-meta {
+  transform: translateY(100%);
 }

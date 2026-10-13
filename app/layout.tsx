@@ -7,6 +7,7 @@ import Cursor from "@/components/Cursor";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import BagDrawer from "@/components/BagDrawer";
+import ScrollReveals from "@/components/ScrollReveals";
 import { INTRO_SEEN_KEY } from "@/lib/intro-key";
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -14,9 +15,20 @@ import "./globals.css";
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
   weight: ["400", "500"],
-  style: ["normal", "italic"],
+  style: ["normal"],
   variable: "--font-bodoni",
   display: "swap",
+});
+
+// The italic is only used further down the page, so it isn't preloaded
+// with the hero's fonts.
+const bodoniItalic = Bodoni_Moda({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["italic"],
+  variable: "--font-bodoni-italic",
+  display: "swap",
+  preload: false,
 });
 
 const interTight = Inter_Tight({
@@ -39,18 +51,22 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bodoni.variable} ${interTight.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${bodoni.variable} ${bodoniItalic.variable} ${interTight.variable}`} suppressHydrationWarning>
       <head>
         {/* Runs before first paint: marks JS as on (so [data-reveal] elements wait for GSAP),
             locks native scroll for the preloader, and flags returning visits so the counter never flashes. */}
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body>
+        <a href="#main" className="skip-link ui-label">
+          Skip to content
+        </a>
         <SmoothScroll>
           <Preloader />
           <Nav />
           {children}
           <Footer />
+          <ScrollReveals />
           <BagDrawer />
           <PageTransition />
           <Cursor />

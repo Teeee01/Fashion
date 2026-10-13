@@ -74,5 +74,11 @@ look number appears instead of a broken image.
 
 - Only the six brand colours exist in the styling system. Tailwind's default colours, rounded corners and
   shadows are switched off, so off-brand styles can't slip in by accident.
-- If someone's device asks for reduced motion, every animation becomes a short 0.3s fade and smooth
-  scrolling turns off.
+- If someone's device asks for reduced motion, every animation becomes a short 0.3s fade, smooth
+  scrolling turns off, the preloader skips its count, the 3D ribbon holds still, and the pinned
+  scroll sections (manifesto, signature coat, film, collection row) become ordinary sections.
+- Phones (under 768px): 4 reveal columns instead of 6, a smaller ribbon centred behind the monogram,
+  a swipe row instead of the pinned collection, no custom cursor, and MENU instead of the links.
+- Keyboard users get a "Skip to content" link and a 1px ink focus outline on everything.
+- To check animations in the browser console, add `?debug` to the address: GSAP is then available as
+  `window.__seve`.
