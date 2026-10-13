@@ -196,14 +196,16 @@ html[data-intro-seen] .preloader-count {
   z-index: 1001;
 }
 
-.monogram-path {
-  fill: var(--ink);
+.monogram-stroke {
   stroke-dasharray: 1;
 }
 
-.js .monogram-path {
-  fill: transparent;
+.js .monogram-stroke {
   stroke-dashoffset: 1;
+}
+
+.js .hero-needle {
+  transform: scaleY(0);
 }
 
 .js .nav-item,
@@ -221,26 +223,21 @@ html[data-intro-seen] .preloader-count {
 }
 
 /* Video fallback: a portrait (1:2) clip of the ribbon, filling the
-   overscanned ribbon layer and centred where the 3D one sits. */
+   overscanned ribbon layer, centred on screen like the 3D one. */
 .ribbon-video {
   position: absolute;
   top: 0;
   height: 100%;
   width: auto;
   max-width: none;
-  left: calc(22vw - 30svh);
+  left: calc(50vw - 30svh);
   /* Soft top and bottom edges: off-screen in the hero, but they keep the
      clip from showing a hard edge when it shrinks behind the footer. */
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
 }
 
-/* Phones: centred behind the monogram (13vw + half its 22vh × 0.79 width). */
-@media (max-width: 767px) {
-  .ribbon-video {
-    left: calc(13vw + 8.68svh - 30svh);
-  }
-}
+
 
 /* ── Nav ──────────────────────────────────────────────────────────
    Frosted band behind the settled nav: a soft blur that fades out

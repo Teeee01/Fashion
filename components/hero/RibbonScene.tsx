@@ -36,7 +36,7 @@ export type RibbonSceneProps = {
   frameloop: "always" | "never";
   /** Reduced motion: hold still and skip the washed-out entrance. */
   still: boolean;
-  /** Phones (< 768px): a smaller ribbon, centred behind the monogram. */
+  /** Phones (< 768px): a slimmer ribbon. */
   mobile: boolean;
   /** Called once the first frame has been drawn. */
   onReady: () => void;
@@ -46,11 +46,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Phones: ribbon width as a fraction of the screen height. */
 const MOBILE_WIDTH = 0.16;
-/** The hero monogram: 13vw from the left, 22vh tall, glyph width ÷ height. */
-const MONOGRAM = { left: 0.13, height: 0.22, aspect: 1230 / 1558 };
-/** Horizontal centre of the hero monogram, as a fraction of screen width. */
-export const monogramCentre = (screenAspect: number) =>
-  MONOGRAM.left + (MONOGRAM.height * MONOGRAM.aspect) / (2 * screenAspect);
+
 
 function Ribbon({ slats, still, mobile, onReady }: Omit<RibbonSceneProps, "frameloop">) {
   const group = useRef<THREE.Group>(null);
@@ -72,9 +68,9 @@ function Ribbon({ slats, still, mobile, onReady }: Omit<RibbonSceneProps, "frame
   const radius = width * 0.16; // a loose spiral, not a flat twist
   // Starts left-centre (behind the monogram) and travels to the right side
   // of the screen as the manifesto scrolls by.
-  // On phones it starts exactly centred behind the monogram.
-  const start = mobile ? monogramCentre(viewport.aspect * CANVAS_OVERSCAN) : 0.22;
-  const xAt = (p: number) => -viewport.width / 2 + viewport.width * lerp(start, mobile ? 0.66 : 0.74, p);
+  // Starts at the exact horizontal centre, behind the M; the manifesto's
+  // scroll then carries it out to the right side.
+  const xAt = (p: number) => -viewport.width / 2 + viewport.width * lerp(0.5, mobile ? 0.72 : 0.78, p);
 
   const geometry = useMemo(
     () => new THREE.BoxGeometry(width, pitch * SLAT_FILL, width * 0.012),

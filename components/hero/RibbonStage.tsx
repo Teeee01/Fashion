@@ -75,8 +75,8 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
         const t = ribbonState.outro;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        // Same start as the CSS for .ribbon-video (behind the monogram on phones).
-        const startX = vw < 768 ? vw * 0.13 + vh * 0.0868 : vw * 0.22;
+        // Same start as the CSS for .ribbon-video: the screen's centre.
+        const startX = vw * 0.5;
         const dx = (ribbonState.outroX * vw - startX) * t;
         const dy = (ribbonState.outroY - 0.5) * vh * t;
         v.style.transform = t > 0 ? `translate(${dx}px, ${dy}px) scale(${1 - 0.7 * t})` : "";

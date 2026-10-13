@@ -14,20 +14,29 @@ import {
   type IntroMode,
 } from "@/lib/intro";
 import { ribbonState } from "@/lib/ribbon-state";
-import Monogram from "./Monogram";
+import Monogram, { MONOGRAM_SIZE } from "./Monogram";
 import RibbonStage from "./RibbonStage";
 
-/* Entrance timing, in seconds from the hero's own start (which is 0.4s
-   into the staircase). Real times from the start of the reveal are +0.4:
-   nav 0.4 · monogram draws 0.6 · captions 0.75 · ribbon + warm background
-   1.2 (as the overlay leaves) · monogram fills 1.9 → done ≈ 2.4s. */
+/* Entrance timing, in seconds from the hero's own start (0.4s into the
+   staircase; add 0.4 for real time from the start of the reveal):
+     nav links stagger in .................... 0
+     a 1px "needle" line grows at the centre .. 0.15  (0.6s)
+     the M traces itself, stroke by stroke .... 0.55  (1.1s; the needle fades)
+       while rising 30px and settling 1.08 → 1
+     captions rise ............................ 0.6
+     ribbon fades in, background warms ........ 0.8   (1.2s)
+     ink washes up through the letter ......... 1.9   (0.7s; outline fades)
+     a thin shine crosses it once ............. 2.6   (0.6s) → done ≈ 3.2s */
 const AT = {
   nav: 0,
-  draw: 0.2,
-  captions: 0.35,
+  needle: 0.15,
+  trace: 0.55,
+  captions: 0.6,
   ribbon: 0.8,
-  fill: 1.5,
+  wash: 1.9,
+  shine: 2.6,
 };
+const TRACE = { total: 1.1, stagger: 0.12 }; // four strokes, 0.12s apart, 1.1s in all
 
 /* Settle sequence, after the entrance and a hold. Seconds from its start:
    captions out 0 · monogram glides to the nav 0.1 · links cluster 0.15
@@ -46,11 +55,20 @@ export default function Hero() {
   const monogram = useRef<SVGSVGElement>(null);
   const ribbon = useRef<HTMLDivElement>(null);
   const captions = useRef<HTMLDivElement>(null);
+  const needle = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
+    const svg = monogram.current;
+    const bands = svg ? Array.from(svg.querySelectorAll(".monogram-band")) : [];
+    const strokes = svg?.querySelectorAll(".monogram-stroke") ?? [];
+    const wash = svg?.querySelector(".monogram-wash") ?? null;
+    const shine = svg?.querySelector(".monogram-shine") ?? null;
+    const { width: W, height: H } = MONOGRAM_SIZE;
+    // Before the entrance: no fill yet (the wash rectangle sits below the letter).
+    gsap.set(wash, { attr: { y: H + 20 } });
+
     const build = (mode: IntroMode) => {
       const links = visible("header.nav .nav-item");
-      const outlines = monogram.current?.querySelectorAll(".monogram-path") ?? [];
       const lines = captions.current?.querySelectorAll(".hero-line") ?? [];
       const html = document.documentElement;
       const pageBg = [html, document.body];
@@ -62,14 +80,16 @@ export default function Hero() {
       const tl = gsap.timeline();
 
       if (mode === "reduced") {
-        // Reduced motion: everything simply fades in together, 0.3s.
+        // Reduced motion: the finished M and everything else simply fade in, 0.3s.
         const fade = { autoAlpha: 1, duration: DURATION.reduced, ease: "none" };
         ribbonState.contrast = 1;
         gsap.set(links, { y: 0 });
         gsap.set(lines, { y: 0, yPercent: 0 });
-        gsap.set(outlines, { strokeDashoffset: 0, fill: "#0E0E0E", strokeOpacity: 0 });
+        gsap.set(strokes, { strokeDashoffset: 0, opacity: 0 });
+        gsap.set(wash, { attr: { y: 0 } });
+        gsap.set(needle.current, { autoAlpha: 0 });
         return tl
-          .fromTo([...links, monogram.current, ...lines, ribbon.current], { autoAlpha: 0 }, fade, 0)
+          .fromTo([...links, svg, ...lines, ribbon.current], { autoAlpha: 0 }, fade, 0)
           .fromTo(pageBg, { backgroundColor: "#FFFFFF" }, { backgroundColor: "#F2F1EE", duration: DURATION.reduced, ease: "none", onComplete: warmed }, 0);
       }
 
@@ -81,14 +101,30 @@ export default function Hero() {
         AT.nav,
       );
 
-      // 2a · Monogram draws itself: 1px ink stroke, no fill.
+      // 2a · A 1px vertical hairline grows from the centre — needle and thread.
       tl.fromTo(
-        outlines,
-        { strokeDashoffset: 1, fill: "rgba(14,14,14,0)", strokeOpacity: 1 },
-        // autoRound off: the offset runs 1 → 0, so whole-pixel rounding would snap it.
-        { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut", autoRound: false },
-        AT.draw,
+        needle.current,
+        { scaleY: 0, autoAlpha: 1 },
+        { scaleY: 1, duration: 0.6, ease: EASE.big, transformOrigin: "50% 50%" },
+        AT.needle,
       );
+
+      // 2b · The M traces itself along it, stroke by stroke (left stem → left
+      // diagonal → right diagonal → right stem), as the needle fades away.
+      const each = TRACE.total - TRACE.stagger * (bands.length - 1);
+      bands.forEach((band, i) => {
+        tl.fromTo(
+          band.querySelectorAll(".monogram-stroke"),
+          { strokeDashoffset: 1, opacity: 1 },
+          // autoRound off: the offset runs 1 → 0, so whole-pixel rounding would snap it.
+          { strokeDashoffset: 0, duration: each, ease: "power2.inOut", autoRound: false },
+          AT.trace + i * TRACE.stagger,
+        );
+      });
+      tl.to(needle.current, { autoAlpha: 0, duration: 0.5, ease: EASE.text }, AT.trace + 0.35);
+
+      // 2c · While it draws, the letter rises gently and settles from 1.08 → 1.
+      tl.fromTo(svg, { y: 30, scale: 1.08 }, { y: 0, scale: 1, duration: TRACE.total + 0.2, ease: EASE.text }, AT.trace);
 
       // 3 · Caption lines rise from behind their masks.
       tl.fromTo(
@@ -113,8 +149,18 @@ export default function Hero() {
           AT.ribbon,
         );
 
-      // 2b · Monogram fills with ink as its outline fades away.
-      tl.to(outlines, { fill: "rgba(14,14,14,1)", strokeOpacity: 0, duration: 0.5, ease: EASE.text }, AT.fill);
+      // 2d · Ink washes up through the letter, bottom → top, like ink soaking
+      // into fabric, while the outline fades away.
+      tl.fromTo(wash, { attr: { y: H + 20 } }, { attr: { y: 0 }, duration: 0.7, ease: EASE.big }, AT.wash);
+      tl.to(strokes, { opacity: 0, duration: 0.5, ease: EASE.text }, AT.wash + 0.1);
+
+      // 2e · A thin light band sweeps once across the filled M.
+      tl.fromTo(
+        shine,
+        { attr: { x: -W * 0.4 }, opacity: 0.55 },
+        { attr: { x: W * 1.3 }, duration: 0.6, ease: "power2.inOut" },
+        AT.shine,
+      ).set(shine, { opacity: 0 });
 
       return tl;
     };
@@ -123,6 +169,9 @@ export default function Hero() {
     // (e.g. from a collection page): show the hero in its settled state.
     if (getIntro().phase === "settled") {
       ribbonState.contrast = 1;
+      gsap.set(strokes, { opacity: 0 });
+      gsap.set(wash, { attr: { y: 0 } });
+      gsap.set(needle.current, { autoAlpha: 0 });
       gsap.set(ribbon.current, { autoAlpha: 1, x: window.innerWidth * 0.04, y: window.innerHeight * 0.06 });
       gsap.set(captions.current, { autoAlpha: 0 });
     }
@@ -208,14 +257,22 @@ export default function Hero() {
           runs off both edges after it drifts down. */}
       <RibbonStage ref={ribbon} className="fixed inset-x-0 -top-[10svh] h-[120svh]" />
 
-      <Monogram
-        ref={monogram}
-        flipId="monogram"
-        decorative
-        className={`hero-fg absolute left-[13vw] top-1/2 h-[22vh] w-auto -translate-y-1/2 ${
-          monogramHidden ? "invisible" : ""
-        }`}
-      />
+      {/* Centring lives on wrappers, so GSAP can scale and lift the
+          elements inside without disturbing it. */}
+      {/* The needle: a 1px hairline the M traces itself along. */}
+      <div aria-hidden="true" className="hero-fg pointer-events-none absolute left-1/2 top-1/2 h-[34vh] w-px -translate-x-1/2 -translate-y-1/2">
+        <span ref={needle} className="hero-needle block h-full w-full bg-ink" />
+      </div>
+
+      {/* The M: exactly centred, in front of the ribbon's middle. */}
+      <div className="hero-fg absolute left-1/2 top-1/2 h-[22vh] -translate-x-1/2 -translate-y-1/2">
+        <Monogram
+          ref={monogram}
+          flipId="monogram"
+          decorative
+          className={`hero-monogram block h-full w-auto ${monogramHidden ? "invisible" : ""}`}
+        />
+      </div>
 
       <div
         ref={captions}
