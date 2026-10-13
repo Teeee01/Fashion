@@ -330,3 +330,13 @@ html[data-intro-seen] .preloader-count {
     scroll-snap-align: start;
   }
 }
+
+/* ── Lookbook ─────────────────────────────────────────────────────
+   Hidden until revealed by scroll. */
+.js .lookbook-media {
+  clip-path: inset(100% 0 0 0);
+}
+
+.js .lookbook-line {
+  transform: translateY(100%);
+}

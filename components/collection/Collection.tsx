@@ -4,7 +4,8 @@ import { useLayoutEffect, useRef } from "react";
 import { gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER } from "@/lib/motion";
 import { LOOKS } from "@/lib/collection";
-import LookImage from "./LookImage";
+import { clipRise } from "@/lib/reveal";
+import EditorialImage from "@/components/EditorialImage";
 
 /* ──────────────────────────────────────────────────────────────
    (02) New Collection
@@ -42,29 +43,18 @@ export default function Collection() {
 
         // ── One look's entrance (played once, when it comes into view) ──
         const revealLook = (card: HTMLElement) => {
-          const media = card.querySelector(".look-media");
-          const photo = card.querySelector(".look-photo");
           const lines = card.querySelectorAll(".look-cap-line");
-          const tl = gsap.timeline({ paused: true });
+          const tl = clipRise(card.querySelector(".look-media"), card.querySelector(".look-photo"), reduced);
           if (reduced) {
-            gsap.set(media, { clipPath: "inset(0% 0% 0% 0%)" });
             gsap.set(lines, { y: 0, yPercent: 0 });
-            return tl.fromTo(card, { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.reduced, ease: "none" });
+            return tl;
           }
-          return tl
-            .fromTo(
-              media,
-              { clipPath: "inset(100% 0% 0% 0%)" },
-              { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: EASE.big },
-              0,
-            )
-            .fromTo(photo, { scale: 1.2 }, { scale: 1, duration: 1.4, ease: EASE.big }, 0)
-            .fromTo(
-              lines,
-              { y: 0, yPercent: 100 },
-              { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines },
-              0.5,
-            );
+          return tl.fromTo(
+            lines,
+            { y: 0, yPercent: 100 },
+            { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines },
+            0.5,
+          );
         };
 
         // ── Headline: lines rise from their masks as the section arrives ──
@@ -182,7 +172,7 @@ export default function Collection() {
                 <div className="look-media relative aspect-[3/4] overflow-hidden bg-loader-grey">
                   <div className="look-photo absolute inset-0">
                     <div className="look-zoom absolute inset-0">
-                      <LookImage
+                      <EditorialImage
                         src={look.src}
                         alt={look.alt}
                         label={`Look ${look.number}`}

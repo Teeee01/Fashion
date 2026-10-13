@@ -37,6 +37,8 @@ After that, any time you want to see the site:
 | Manifesto section (01 — The House) | `components/Manifesto.tsx` |
 | New collection section (02) | `components/collection/Collection.tsx` |
 | **Collection looks: names and photos** | `lib/collection.ts` |
+| Lookbook section (campaign + editorial grid) | `components/Lookbook.tsx` |
+| **Lookbook photos** | `lib/lookbook.ts` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
