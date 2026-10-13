@@ -457,19 +457,6 @@ html[data-intro-seen] .preloader-count {
   visibility: hidden;
 }
 
-.js .sig-point {
-  opacity: 0;
-}
-
-.sig-line {
-  stroke-dasharray: 1;
-}
-
-.js .sig-line {
-  stroke-dashoffset: 1;
-}
-
-.js .sig-label-text,
 .js .sig-shop {
   transform: translateY(100%);
 }

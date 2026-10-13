@@ -40,7 +40,7 @@ After that, any time you want to see the site:
 | Lookbook section (campaign + editorial grid) | `components/Lookbook.tsx` |
 | **Lookbook photos and the pieces in each look** (`/look/09` …) | `lib/lookbook.ts` |
 | Signature series (coat, cap, pants, shoe): pinned animation | `components/SignatureFeature.tsx` |
-| **Signature series: photos, words, callout text and positions, product links** | `lib/signatures.ts` |
+| **Signature series: photos, words, product links** | `lib/signatures.ts` |
 | **The cap's four angle photos (replace the placeholders)** | `public/images/cap/` (see the note in `lib/signatures.ts`) |
 | Atelier section (photo, text, pattern, stats) | `components/Atelier.tsx` |
 | **Atelier stats and text: put your real numbers here** | `lib/atelier.ts` |
