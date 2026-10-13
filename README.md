@@ -33,7 +33,7 @@ After that, any time you want to see the site:
 | Hero (nav, monogram, captions, entrance timing) | `components/hero/Hero.tsx` |
 | Navigation links | `components/Nav.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
-| Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` |
+| Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
 | Your photos | `public/images/` |
 

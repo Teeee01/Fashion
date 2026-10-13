@@ -82,15 +82,18 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
       {renderer === "video" && (
         <video
           className="ribbon-video"
-          src="/ribbon-loop.mp4"
           autoPlay={!still}
           muted
           loop
           playsInline
           preload="auto"
           onLoadedData={markLoaded}
-          onError={markLoaded}
-        />
+        >
+          {/* MP4 for Safari and most browsers; WebM for browsers without H.264.
+              If neither loads, the error on the last source still releases the preloader. */}
+          <source src="/ribbon-loop.mp4" type="video/mp4" />
+          <source src="/ribbon-loop.webm" type="video/webm" onError={markLoaded} />
+        </video>
       )}
     </div>
   );
