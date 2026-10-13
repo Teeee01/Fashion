@@ -7,13 +7,13 @@ import { EASE } from "@/lib/motion";
 import { isSettledLayout, useIntro } from "@/lib/intro";
 import Monogram from "@/components/hero/Monogram";
 import MobileMenu from "./MobileMenu";
-import { bag, bagCount, useBag } from "@/lib/bag";
+import { useBag } from "@/lib/bag";
 import { DURATION, prefersReducedMotion } from "@/lib/motion";
 import { useLenis } from "./SmoothScroll";
 
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Collections", href: "/collections/aw26" },
+  { label: "Collections", href: "/collections" },
   { label: "Lookbook", href: "/#lookbook" },
   { label: "Atelier", href: "/#atelier" },
   { label: "Journal", href: "/#journal" },
@@ -38,8 +38,7 @@ export default function Nav() {
   const { phase } = useIntro();
   const settled = isSettledLayout(phase);
   const lenis = useLenis();
-  const { items } = useBag();
-  const count = bagCount(items);
+  const { count, openBag } = useBag();
 
   // Pages without the home intro (e.g. a product page opened directly):
   // once the preloader has gone, simply fade the nav in.
@@ -107,8 +106,8 @@ export default function Nav() {
           ))}
           {/* The bag joins the cluster once the nav has settled. */}
           <li className={settled ? "" : "hidden"}>
-            <button type="button" className="nav-bag nav-link ui-label pointer-events-auto relative" onClick={() => bag.open()}>
-              Bag ({count})
+            <button type="button" className="nav-bag nav-link ui-label pointer-events-auto relative" onClick={openBag}>
+              Checkout ({count})
             </button>
           </li>
         </ul>
@@ -117,9 +116,9 @@ export default function Nav() {
           <button
             type="button"
             className={`nav-bag ui-label pointer-events-auto ${settled ? "" : "invisible"}`}
-            onClick={() => bag.open()}
+            onClick={openBag}
           >
-            Bag ({count})
+            Checkout ({count})
           </button>
           <MobileMenu links={NAV_LINKS} open={menuOpen} onOpenChange={setMenuOpen} header={header} />
         </div>

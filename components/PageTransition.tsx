@@ -7,7 +7,7 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
 import { getIntro, setIntro } from "@/lib/intro";
 import { getProduct } from "@/lib/products";
-import { setTransition } from "@/lib/transition";
+import { registerNavigator, setTransition } from "@/lib/transition";
 import StairReveal, { type StairRevealHandle } from "./StairReveal";
 import { NAV_OFFSET, useLenis } from "./SmoothScroll";
 
@@ -29,11 +29,13 @@ const SHARED_MOVE = 1.1;
 const titleCase = (s: string) => s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 /** The name shown while the screen is covered. */
-function labelFor(url: URL, link: HTMLAnchorElement) {
-  if (link.dataset.transitionLabel) return link.dataset.transitionLabel;
+function labelFor(url: URL, link: HTMLAnchorElement | null) {
+  if (link?.dataset.transitionLabel) return link.dataset.transitionLabel;
   const [first, second] = url.pathname.split("/").filter(Boolean);
   if (!first) return url.hash ? titleCase(url.hash.slice(1)) : "Maison Sève";
   if (first === "product" && second) return getProduct(second)?.name ?? "Product";
+  if (first === "look" && second) return `Look ${second.padStart(2, "0")}`;
+  if (first === "journal") return "Journal";
   return titleCase(first);
 }
 
@@ -150,7 +152,10 @@ export default function PageTransition() {
       await goTo(url);
       await settleScroll(url);
 
-      const target = document.querySelector<HTMLElement>("[data-shared-target]");
+      // The visible one (the desktop gallery and the phone carousel both mark one).
+      const target = Array.from(document.querySelectorAll<HTMLElement>("[data-shared-target]")).find(
+        (el) => el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0,
+      );
       const to = target?.getBoundingClientRect();
       setTransition({ phase: "revealing" });
       const tl = gsap.timeline();
@@ -180,20 +185,32 @@ export default function PageTransition() {
       if (url.origin !== location.origin || url.pathname === location.pathname) return; // same page: smooth scroll handles it
       e.preventDefault();
       e.stopPropagation();
+      start(url, link);
+    };
+
+    function start(url: URL, link: HTMLAnchorElement | null) {
       if (busy.current) return;
       busy.current = true;
-      lenis.stop();
-      const source = link.dataset.transition === "shared" ? link.querySelector<HTMLElement>("[data-shared-source]") : null;
+      lenis!.stop();
+      const source = link?.dataset.transition === "shared" ? link.querySelector<HTMLElement>("[data-shared-source]") : null;
       (source ? shared(url, source) : columns(url, labelFor(url, link))).catch(() => {
         // Never leave the screen covered: fall back to a plain navigation.
         busy.current = false;
         setTransition({ phase: "idle" });
         window.location.href = url.href;
       });
-    };
+    }
 
     document.addEventListener("click", onClick, { capture: true });
-    return () => document.removeEventListener("click", onClick, { capture: true });
+    // Buttons (e.g. "Buy now") navigate through the same transition.
+    const unregister = registerNavigator((href) => {
+      const url = new URL(href, location.href);
+      if (url.pathname !== location.pathname) start(url, null);
+    });
+    return () => {
+      document.removeEventListener("click", onClick, { capture: true });
+      unregister();
+    };
   }, [lenis, router]);
 
   if (!mounted) return null;

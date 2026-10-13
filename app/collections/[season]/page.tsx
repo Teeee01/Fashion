@@ -15,5 +15,12 @@ export async function generateMetadata({ params }: { params: Promise<{ season: s
 export default async function Page({ params }: { params: Promise<{ season: string }> }) {
   const season = getSeason((await params).season);
   if (!season) notFound();
-  return <CollectionPage season={season} products={productsForSeason(season.slug)} />;
+  return (
+    <CollectionPage
+      label={`Collection — ${season.short}`}
+      title={season.title}
+      intro={season.intro}
+      products={productsForSeason(season.slug)}
+    />
+  );
 }

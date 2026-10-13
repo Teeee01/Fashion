@@ -35,6 +35,21 @@ export function useTransitionState() {
   return useSyncExternalStore(subscribe, getTransition, () => ({ phase: "idle", kind: "columns" }) as TransitionState);
 }
 
+/* ── Programmatic navigation with the page transition ──
+   Links are caught automatically; for buttons (e.g. "Buy now") call
+   navigate(href). The transition layer registers the handler. */
+let navigator: ((href: string) => void) | null = null;
+export function registerNavigator(fn: (href: string) => void) {
+  navigator = fn;
+  return () => {
+    if (navigator === fn) navigator = null;
+  };
+}
+export function navigate(href: string) {
+  if (navigator) navigator(href);
+  else window.location.href = href;
+}
+
 /** Is the page on screen yet? (Not hidden by the preloader or a transition.) */
 function pageVisible() {
   const intro = getIntro().phase;

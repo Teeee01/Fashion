@@ -7,6 +7,7 @@ import Cursor from "@/components/Cursor";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import BagDrawer from "@/components/BagDrawer";
+import { BagProvider } from "@/lib/bag";
 import ScrollReveals from "@/components/ScrollReveals";
 import { INTRO_SEEN_KEY } from "@/lib/intro-key";
 import "lenis/dist/lenis.css";
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="skip-link ui-label">
           Skip to content
         </a>
+        <BagProvider>
         <SmoothScroll>
           <Preloader />
           <Nav />
@@ -71,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PageTransition />
           <Cursor />
         </SmoothScroll>
+        </BagProvider>
       </body>
     </html>
   );

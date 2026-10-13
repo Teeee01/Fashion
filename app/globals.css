@@ -532,13 +532,52 @@ html[data-intro-seen] .preloader-count {
   visibility: hidden;
 }
 
-/* ── Bag drawer ───────────────────────────────────────────────────── */
-.bag-root {
+/* ── Drawers (bag, size guide) ───────────────────────────────────── */
+.drawer-root {
   visibility: hidden;
 }
 
-.bag-panel {
+.drawer-panel {
   transform: translateX(100%);
+}
+
+/* The house button: ink with ivory text; on hover an ivory fill wipes
+   upward and the text turns ink (a hairline keeps the shape). */
+.btn-ink {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--ivory);
+  border: 1px solid var(--ink);
+  transition: color 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.btn-ink::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ivory);
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.btn-ink > * {
+  position: relative;
+}
+
+.btn-ink:hover:not(:disabled),
+.btn-ink:focus-visible {
+  color: var(--ink);
+}
+
+.btn-ink:hover:not(:disabled)::before,
+.btn-ink:focus-visible::before {
+  transform: scaleY(1);
+}
+
+.btn-ink:disabled {
+  opacity: 0.4;
 }
 
 /* ── Shop ─────────────────────────────────────────────────────────
@@ -586,4 +625,42 @@ html[data-intro-seen] .preloader-count {
 
 .js .product-meta {
   transform: translateY(100%);
+}
+
+/* Product gallery: images reveal bottom → top as they scroll into view. */
+.js .gallery-media {
+  clip-path: inset(100% 0 0 0);
+}
+
+.product-carousel {
+  scrollbar-width: none;
+}
+
+.product-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sold-out sizes: crossed out with a 1px diagonal. */
+.size-out::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 1px;
+  background: var(--stone);
+  transform: rotate(-24deg);
+}
+
+.size-out {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.btn-ink:focus-visible {
+  outline-color: var(--ink);
+}
+
+.zoom-root {
+  visibility: hidden;
 }

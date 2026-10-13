@@ -5,7 +5,7 @@ import { Flip, gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER, prefersReducedMotion } from "@/lib/motion";
 import { usePageReveal } from "@/lib/transition";
 import { clipRise } from "@/lib/reveal";
-import { CATEGORIES, type Category, type Product, type Season } from "@/lib/products";
+import { FILTERS, type Category, type Product } from "@/lib/products";
 import ProductCard from "./ProductCard";
 
 /* ──────────────────────────────────────────────────────────────
@@ -17,12 +17,33 @@ import ProductCard from "./ProductCard";
    Grid: 3 columns on desktop, 2 on phones.
    ────────────────────────────────────────────────────────────── */
 
-export default function CollectionPage({ season, products }: { season: Season; products: Product[] }) {
+type CollectionPageProps = {
+  /** Small label above the title, e.g. "Collection — AW26". */
+  label: string;
+  title: string;
+  intro: string;
+  products: Product[];
+};
+
+export default function CollectionPage({ label, title: heading, intro, products }: CollectionPageProps) {
   const title = useRef<HTMLHeadingElement>(null);
   const header = useRef<HTMLDivElement>(null);
   const grid = useRef<HTMLUListElement>(null);
   const [filter, setFilter] = useState<Category | "all">("all");
   const flip = useRef<gsap.core.Timeline | null>(null);
+  // Only offer filters that have something in them.
+  const filters = FILTERS.filter((f) => f.id === "all" || products.some((p) => p.category === f.id));
+
+  // Arriving with ?category=… (e.g. from a product page breadcrumb): start filtered.
+  useLayoutEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get("category") as Category | null;
+    if (!wanted || !filters.some((f) => f.id === wanted)) return;
+    gsap.utils.toArray<HTMLElement>(".product-item", grid.current).forEach((el) => {
+      el.style.display = el.dataset.category === wanted ? "" : "none";
+    });
+    setFilter(wanted);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Hide the header pieces until the page is revealed (no flash).
   useLayoutEffect(() => {
@@ -103,19 +124,19 @@ export default function CollectionPage({ season, products }: { season: Season; p
       <div ref={header} className="grid-12 items-end gap-y-10 pb-[10vh]">
         <div className="col-span-12 md:col-span-7">
           <p className="ui-label mask mb-6">
-            <span className="collection-rise block">Collection — {season.short}</span>
+            <span className="collection-rise block">{label}</span>
           </p>
           <h1 ref={title} className="headline">
-            {season.title}
+            {heading}
           </h1>
         </div>
         <p className="body-copy mask col-span-12 text-stone md:col-span-4 md:col-start-9">
-          <span className="collection-rise block">{season.intro}</span>
+          <span className="collection-rise block">{intro}</span>
         </p>
 
         {/* Filters */}
         <div className="col-span-12 mt-6 flex flex-wrap gap-x-7 gap-y-3" role="group" aria-label="Filter by category">
-          {CATEGORIES.map((c) => (
+          {filters.map((c) => (
             <span key={c.id} className="mask">
               <button
                 type="button"
