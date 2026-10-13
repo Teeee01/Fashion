@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────
+   MAISON SÈVE — design tokens
+   These are the only colours the site may use. Tailwind's default
+   palette, radii and shadows are switched off below so nothing
+   off-brand can sneak in (e.g. `bg-blue-500` or `shadow-lg` won't work).
+   ────────────────────────────────────────────────────────────── */
+:root {
+  --ivory: #f2f1ee;
+  --white: #ffffff;
+  --loader-grey: #e6e6e4;
+  --ink: #0e0e0e;
+  --stone: #8a8986;
+  --hairline: rgba(14, 14, 14, 0.12);
+
+  --pad-x: 16px;
+  --gutter: 16px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --pad-x: 24px;
+  }
+}
+
+@theme {
+  --color-*: initial;
+  --color-ivory: var(--ivory);
+  --color-white: var(--white);
+  --color-loader-grey: var(--loader-grey);
+  --color-ink: var(--ink);
+  --color-stone: var(--stone);
+  --color-hairline: var(--hairline);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Square corners everywhere; `rounded-full` is kept for the cursor only. */
+  --radius-*: initial;
+  --radius-full: 9999px;
+
+  /* No drop shadows. */
+  --shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  --font-display: var(--font-bodoni), "Bodoni Moda", Didot, serif;
+  --font-sans: var(--font-inter-tight), "Inter Tight", system-ui, sans-serif;
+
+  --spacing-pad: var(--pad-x);
+  --spacing-gutter: var(--gutter);
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+html {
+  background: var(--ivory);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--ivory);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--ivory);
+}
+
+/* ── Layout & typography utilities ───────────────────────────── */
+
+/* 12-column grid with brand padding and gutters. */
+@utility grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  padding-inline: var(--pad-x);
+}
+
+/* Nav links + labels: 11px, uppercase, 0.04em, weight 500. */
+@utility ui-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Body copy: 13–14px, 1.45 line-height, max 34ch. */
+@utility body-copy {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  max-width: 34ch;
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+/* Section headlines in Bodoni Moda. */
+@utility headline {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(48px, 7vw, 120px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+/* 1px divider line. */
+@utility hairline {
+  border-color: var(--hairline);
+  border-width: 0;
+  border-top-width: 1px;
+}
+
+/* The overflow-hidden mask that text rises out of. */
+@utility mask {
+  display: block;
+  overflow: hidden;
+}
+
+/* Elements animated in by GSAP start hidden to avoid a flash before JS runs. */
+.js [data-reveal] {
+  visibility: hidden;
+}
+
+/* ── Reduced motion: no smooth scroll, no CSS transitions ─────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
