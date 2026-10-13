@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Inter_Tight } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import Preloader from "@/components/Preloader";
+import Nav from "@/components/Nav";
 import { INTRO_SEEN_KEY } from "@/lib/intro-key";
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SmoothScroll>
           <Preloader />
+          <Nav />
           {children}
         </SmoothScroll>
       </body>

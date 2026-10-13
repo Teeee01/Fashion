@@ -200,7 +200,7 @@ html[data-intro-seen] .preloader-count {
   stroke-dashoffset: 1;
 }
 
-.js .nav-link {
+.js .nav-item {
   opacity: 0;
 }
 
@@ -213,18 +213,66 @@ html[data-intro-seen] .preloader-count {
   visibility: hidden;
 }
 
-/* Video fallback: a portrait clip of the ribbon, centred where the 3D one sits. */
+/* Video fallback: a portrait (1:2) clip of the ribbon, filling the
+   overscanned ribbon layer and centred where the 3D one sits. */
 .ribbon-video {
   position: absolute;
   top: 0;
   height: 100%;
   width: auto;
   max-width: none;
-  left: calc(22vw - 25svh);
+  left: calc(22vw - 30svh);
 }
 
 @media (max-width: 767px) {
   .ribbon-video {
-    left: calc(34vw - 25svh);
+    left: calc(34vw - 30svh);
   }
+}
+
+/* ── Nav ──────────────────────────────────────────────────────────
+   Frosted band behind the settled nav: a soft blur that fades out
+   towards the bottom (mask), not a hard bar. Hidden until the settle. */
+.nav-band {
+  background: rgba(242, 241, 238, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Link hover: an underline draws in left → right, and on mouse leave it
+   retracts towards the right (the anchor point flips side). */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 100% 50%;
+  transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: 0% 50%;
+}
+
+.nav-link:focus-visible,
+.nav-menu-btn:focus-visible,
+.nav-logo:focus-visible,
+.menu-link:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
+}
+
+/* Mobile menu panel stays out of sight until opened. */
+.mobile-menu {
+  visibility: hidden;
 }

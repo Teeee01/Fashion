@@ -58,14 +58,15 @@ export default function Preloader() {
   const { phase } = useIntro();
   const lenis = useLenis();
 
-  // Lock scrolling while the preloader is on screen.
+  // Scrolling stays locked through the preloader, the entrance and the
+  // hero's settle sequence; it unlocks once the page has settled.
   useEffect(() => {
     if (!lenis) return;
-    if (phase === "loading") {
-      lenis.scrollTo(0, { immediate: true, force: true });
-      lenis.stop();
-    } else {
+    if (phase === "settled") {
       lenis.start();
+    } else {
+      if (phase === "loading") lenis.scrollTo(0, { immediate: true, force: true });
+      lenis.stop();
     }
   }, [lenis, phase]);
 
@@ -120,7 +121,8 @@ export default function Preloader() {
 
       await play(master);
       if (cancelled) return;
-      setIntro({ phase: "done" });
+      // A page with an entrance settles itself afterwards; otherwise we're done.
+      setIntro({ phase: entrance ? "done" : "settled" });
     };
 
     (async () => {

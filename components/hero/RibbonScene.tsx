@@ -18,6 +18,8 @@ const BREATH_AMOUNT = 0.035; // ±3.5% extra twist
 // Exactly three breaths per turn, so a 40s recording loops seamlessly.
 const BREATH_SPEED = (Math.PI * 2 * 3) / SECONDS_PER_TURN;
 const PLEAT_TILT = 0.06; // radians, alternating per slat
+/** Canvas height ÷ screen height (see RibbonStage / .hero-ribbon). */
+export const CANVAS_OVERSCAN = 1.2;
 const SLAT_FILL = 0.88; // each slat fills 88% of its pitch; the rest is gap
 
 export type RibbonSceneProps = {
@@ -41,13 +43,16 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   const ready = useRef(false);
   const { viewport } = useThree();
 
-  // Size everything from the visible height so it scales with the window.
-  const length = viewport.height * 1.6; // runs off the top and bottom
-  const width = viewport.height * (viewport.aspect < 1 ? 0.22 : 0.26);
+  // The canvas is 20% taller than the screen (10% spare above and below, so
+  // the ribbon still runs off both edges after it drifts down). Sizes are
+  // based on the screen height so the ribbon looks the same either way.
+  const screenHeight = viewport.height / CANVAS_OVERSCAN;
+  const length = viewport.height * 1.4; // runs off the top and bottom
+  const width = screenHeight * (viewport.aspect * CANVAS_OVERSCAN < 1 ? 0.22 : 0.26);
   const pitch = length / slats;
   const radius = width * 0.16; // a loose spiral, not a flat twist
   // Left-centre of the screen, behind the monogram.
-  const x = -viewport.width / 2 + viewport.width * (viewport.aspect < 1 ? 0.34 : 0.22);
+  const x = -viewport.width / 2 + viewport.width * (viewport.aspect * CANVAS_OVERSCAN < 1 ? 0.34 : 0.22);
 
   const geometry = useMemo(
     () => new THREE.BoxGeometry(width, pitch * SLAT_FILL, width * 0.012),

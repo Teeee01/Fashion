@@ -30,8 +30,9 @@ After that, any time you want to see the site:
 | Smooth scrolling (Lenis) | `components/SmoothScroll.tsx` |
 | Preloader (counter + white column reveal) | `components/Preloader.tsx` |
 | Reusable column reveal | `components/StairReveal.tsx` |
-| Hero (nav, monogram, captions, entrance timing) | `components/hero/Hero.tsx` |
-| Navigation links | `components/Nav.tsx` |
+| Hero (monogram, captions, entrance and settle timing) | `components/hero/Hero.tsx` |
+| Navigation (links, logo, frosted band, hide on scroll) | `components/Nav.tsx` |
+| Mobile menu | `components/MobileMenu.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |

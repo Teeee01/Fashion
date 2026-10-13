@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef } from "react";
-import { gsap } from "@/lib/gsap";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { flushSync } from "react-dom";
+import { Flip, gsap } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER } from "@/lib/motion";
-import { registerIntroTimeline, type IntroMode } from "@/lib/intro";
+import {
+  getIntro,
+  isSettledLayout,
+  registerIntroTimeline,
+  setIntro,
+  useIntro,
+  type IntroMode,
+} from "@/lib/intro";
 import { ribbonState } from "@/lib/ribbon-state";
-import Nav from "@/components/Nav";
 import Monogram from "./Monogram";
 import RibbonStage from "./RibbonStage";
 
@@ -22,18 +29,27 @@ const AT = {
   fill: 1.5,
 };
 
+/* Settle sequence, after the entrance and a hold. Seconds from its start:
+   captions out 0 · monogram glides to the nav 0.1 · links cluster 0.15
+   (staggered) · ribbon drifts 0.2 · frosted band 0.3 → ≈1.1s. */
+const HOLD: Record<IntroMode, number> = { full: 0.8, quick: 0.4, reduced: 0.8 };
+const SETTLE_SPEED: Record<IntroMode, number> = { full: 1, quick: 2, reduced: 1 };
+
+/** Only the nav items showing at this screen size (links on desktop, MENU on mobile). */
+const visible = (selector: string) =>
+  gsap.utils.toArray<HTMLElement>(selector).filter((el) => el.getClientRects().length > 0);
+
 const LEFT_LINES = ["Garments shaped slowly,", "worn for years."];
 const RIGHT_LINES = ["Discover the new collection, designed to feel", "like a second skin."];
 
 export default function Hero() {
-  const nav = useRef<HTMLElement>(null);
   const monogram = useRef<SVGSVGElement>(null);
   const ribbon = useRef<HTMLDivElement>(null);
   const captions = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const build = (mode: IntroMode) => {
-      const links = nav.current?.querySelectorAll(".nav-link") ?? [];
+      const links = visible(".nav-item");
       const outlines = monogram.current?.querySelectorAll(".monogram-path") ?? [];
       const lines = captions.current?.querySelectorAll(".hero-line") ?? [];
       const html = document.documentElement;
@@ -106,15 +122,88 @@ export default function Hero() {
     return registerIntroTimeline(build);
   }, []);
 
+  // After the entrance: hold, then settle into the browsing layout.
+  const { phase } = useIntro();
+  const settleScheduled = useRef(false);
+  const settleAnims = useRef<gsap.core.Animation[]>([]);
+
+  useEffect(() => {
+    if (phase !== "done" || settleScheduled.current) return;
+    settleScheduled.current = true;
+    const { mode } = getIntro();
+
+    const settle = () => {
+      const links = visible(".nav-link");
+      const logo = document.querySelector<SVGSVGElement>(".nav-logo svg");
+      const band = document.querySelector<HTMLElement>(".nav-band");
+      const done = () => setIntro({ phase: "settled" });
+
+      // Record where everything is now, switch the nav to its settled
+      // layout (logo shown, links clustered), then Flip glides from old to new.
+      const monogramState = Flip.getState(monogram.current);
+      const linkState = Flip.getState(links);
+      flushSync(() => setIntro({ phase: "settling" }));
+
+      const tl = gsap.timeline({ onComplete: done });
+      settleAnims.current.push(tl);
+
+      if (mode === "reduced") {
+        // Reduced motion: cross-fade into the settled layout, 0.3s in total.
+        const half = DURATION.reduced / 2;
+        return tl
+          .to([captions.current, monogram.current], { autoAlpha: 0, duration: half, ease: "none" }, 0)
+          .fromTo([logo, ...links, band], { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "none" }, half);
+      }
+
+      tl.timeScale(SETTLE_SPEED[mode]);
+
+      // 1 · Captions lift away.
+      tl.to(captions.current, { opacity: 0, y: -8, duration: 0.4, ease: EASE.text }, 0);
+
+      // 2 · The monogram shrinks and glides into the nav: it is the logo now.
+      if (logo) {
+        tl.add(Flip.from(monogramState, { targets: logo, scale: true, duration: 0.9, ease: EASE.big }), 0.1);
+      }
+
+      // 3 · Links slide from the spread layout into the right-hand cluster.
+      if (links.length) {
+        tl.add(Flip.from(linkState, { duration: 0.55, ease: EASE.big, stagger: STAGGER.nav }), 0.15);
+      }
+
+      // 5 · The ribbon drifts down and right (it keeps rotating).
+      tl.to(
+        ribbon.current,
+        { x: window.innerWidth * 0.04, y: window.innerHeight * 0.06, duration: 0.9, ease: EASE.big },
+        0.2,
+      );
+
+      // 4 · The frosted band fades in behind the nav.
+      tl.fromTo(band, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: EASE.text }, 0.3);
+
+      // 6 · Scrolling unlocks when the timeline completes (phase "settled").
+      return tl;
+    };
+
+    settleAnims.current.push(gsap.delayedCall(HOLD[mode], settle));
+  }, [phase]);
+
+  useEffect(() => () => settleAnims.current.forEach((a) => a.kill()), []);
+
+  const monogramHidden = isSettledLayout(phase);
+
   return (
     <section className="hero relative h-svh overflow-hidden" aria-label="Maison Sève">
-      <Nav ref={nav} />
 
-      <RibbonStage ref={ribbon} className="absolute inset-0" />
+      {/* 20% taller than the hero (10vh spare above and below) so the ribbon
+          still runs off both edges after it drifts down. */}
+      <RibbonStage ref={ribbon} className="absolute inset-x-0 -top-[10svh] h-[120svh]" />
 
       <Monogram
         ref={monogram}
-        className="hero-fg absolute left-[13vw] top-1/2 h-[22vh] w-auto -translate-y-1/2"
+        flipId="monogram"
+        className={`hero-fg absolute left-[13vw] top-1/2 h-[22vh] w-auto -translate-y-1/2 ${
+          monogramHidden ? "invisible" : ""
+        }`}
       />
 
       <div

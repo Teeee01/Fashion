@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useSyncExternalStore } from "react";
 import type gsap from "gsap";
 import { INTRO_SEEN_KEY } from "./intro-key";
@@ -9,15 +8,17 @@ import { INTRO_SEEN_KEY } from "./intro-key";
    Intro state, shared between the preloader and the sections that
    animate in after it.
      loading   → preloader is on screen, scroll is locked
-     revealing → preloader has finished; the page reveal plays
-     done      → everything is interactive
+     revealing → the overlay has gone; the page entrance is playing
+     done      → the entrance has finished (the hero then holds, then settles)
+     settling  → the nav has switched to its settled layout and is gliding there
+     settled   → everything is in place and scrolling is unlocked
    `mode` says which version is playing so the reveal can match it:
      full    → first visit this session
      quick   → returning visit (0.6s version)
      reduced → prefers-reduced-motion (0.3s fades)
    ────────────────────────────────────────────────────────────── */
 
-export type IntroPhase = "loading" | "revealing" | "done";
+export type IntroPhase = "loading" | "revealing" | "done" | "settling" | "settled";
 export type IntroMode = "full" | "quick" | "reduced";
 
 type IntroState = { phase: IntroPhase; mode: IntroMode };
@@ -37,6 +38,9 @@ function subscribe(listener: () => void) {
 
 const getState = () => state;
 
+/** Read the current intro state outside React (e.g. inside a GSAP callback). */
+export const getIntro = getState;
+
 /* ── Page entrance timelines ─────────────────────────────────────
    A page (e.g. the hero) registers a builder for its entrance. The
    preloader calls it when the staircase starts and nests the result in
@@ -51,6 +55,11 @@ export function registerIntroTimeline(builder: IntroBuilder) {
   return () => {
     if (introBuilder === builder) introBuilder = null;
   };
+}
+
+/** True once the nav is in (or gliding into) its settled layout. */
+export function isSettledLayout(phase: IntroPhase) {
+  return phase === "settling" || phase === "settled";
 }
 
 export function buildIntroTimeline(mode: IntroMode) {
