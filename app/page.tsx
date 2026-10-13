@@ -5,6 +5,7 @@ import Lookbook from "@/components/Lookbook";
 import SignatureCoat from "@/components/SignatureCoat";
 import Atelier from "@/components/Atelier";
 import CampaignFilm from "@/components/CampaignFilm";
+import Journal from "@/components/Journal";
 import Hairline from "@/components/Hairline";
 
 export default function Home() {
@@ -23,6 +24,8 @@ export default function Home() {
       <Atelier />
       <Hairline />
       <CampaignFilm />
+      <Hairline />
+      <Journal />
     </main>
   );
 }

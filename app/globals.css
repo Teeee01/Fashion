@@ -423,3 +423,21 @@ html[data-intro-seen] .preloader-count {
 .film-player {
   visibility: hidden;
 }
+
+/* ── Journal ──────────────────────────────────────────────────────
+   Rows wait below their masks until scrolled into view. While one row
+   is hovered (or focused), the others dim to 40%. */
+.js .journal-rise {
+  transform: translateY(100%);
+}
+
+.journal-row {
+  transition: opacity 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .journal-list:hover .journal-row:not(:hover),
+  .journal-list:has(a:focus-visible) .journal-row:not(:has(a:focus-visible)) {
+    opacity: 0.4;
+  }
+}
