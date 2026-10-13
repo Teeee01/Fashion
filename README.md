@@ -39,6 +39,7 @@ After that, any time you want to see the site:
 | **Collection looks: names and photos** | `lib/collection.ts` |
 | Lookbook section (campaign + editorial grid) | `components/Lookbook.tsx` |
 | **Lookbook photos** | `lib/lookbook.ts` |
+| Signature Coat section (photo, callout text and positions) | `components/SignatureCoat.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |

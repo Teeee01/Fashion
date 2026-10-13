@@ -340,3 +340,55 @@ html[data-intro-seen] .preloader-count {
 .js .lookbook-line {
   transform: translateY(100%);
 }
+
+/* ── The Signature Coat ───────────────────────────────────────────
+   THE and COAT sit either side of the small centred image (20vw, or
+   28vw on phones), with a 2vw breathing gap. */
+.coat-word {
+  font-size: 14vw;
+  letter-spacing: -0.03em;
+  translate: 0 -50%; /* separate from GSAP's transform, which slides it */
+}
+
+.coat-word-left {
+  right: calc(50% + 10vw + 2vw);
+}
+
+.coat-word-right {
+  left: calc(50% + 10vw + 2vw);
+}
+
+@media (max-width: 767px) {
+  .coat-word {
+    font-size: 12vw;
+  }
+
+  .coat-word-left {
+    right: calc(50% + 14vw + 2vw);
+  }
+
+  .coat-word-right {
+    left: calc(50% + 14vw + 2vw);
+  }
+}
+
+/* Hidden until scroll brings them in (no flash before GSAP runs). */
+.js .coat-media {
+  clip-path: inset(50% 50% 50% 50%);
+}
+
+.js .coat-point {
+  opacity: 0;
+}
+
+.coat-line {
+  stroke-dasharray: 1;
+}
+
+.js .coat-line {
+  stroke-dashoffset: 1;
+}
+
+.js .coat-label-text {
+  transform: translateY(100%);
+}
