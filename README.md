@@ -33,6 +33,7 @@ After that, any time you want to see the site:
 | Hero (monogram, captions, entrance and settle timing) | `components/hero/Hero.tsx` |
 | Navigation (links, logo, frosted band, hide on scroll) | `components/Nav.tsx` |
 | Mobile menu | `components/MobileMenu.tsx` |
+| Custom cursor | `components/Cursor.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |

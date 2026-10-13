@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/motion";
+import { getIntro } from "@/lib/intro";
+
+/** Anchor targets land this far below the top, clear of the nav (20px + 32px logo + 20px). */
+export const NAV_OFFSET = 72;
 
 const LenisContext = createContext<Lenis | null>(null);
 
@@ -26,6 +30,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     const instance = new Lenis({
       autoRaf: false,
       lerp: 0.08,
+      wheelMultiplier: 0.9,
       smoothWheel: !reduced,
     });
 
@@ -37,7 +42,29 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
 
     setLenis(instance);
 
+    // Same-page anchor links (e.g. "/#atelier") scroll smoothly with Lenis,
+    // landing just below the nav. Caught before Next.js's own link handling,
+    // which would otherwise jump straight there.
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target === "_blank") return;
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin || url.pathname !== location.pathname) return;
+
+      const target = url.hash ? document.querySelector<HTMLElement>(decodeURIComponent(url.hash)) : null;
+      if (url.hash && !target) return; // no such section on this page: let the browser handle it
+      e.preventDefault();
+      e.stopPropagation();
+      // While the intro has scrolling locked, links don't move the page.
+      if (getIntro().phase !== "settled") return;
+      instance.scrollTo(target ?? 0, { offset: target ? -NAV_OFFSET : 0 });
+      history.pushState(null, "", url.hash || url.pathname);
+    };
+    document.addEventListener("click", onClick, { capture: true });
+
     return () => {
+      document.removeEventListener("click", onClick, { capture: true });
       gsap.ticker.remove(tick);
       instance.destroy();
       setLenis(null);
