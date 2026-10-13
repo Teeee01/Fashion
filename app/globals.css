@@ -200,7 +200,8 @@ html[data-intro-seen] .preloader-count {
   stroke-dashoffset: 1;
 }
 
-.js .nav-item {
+.js .nav-item,
+.js .nav-bag {
   opacity: 0;
 }
 
@@ -474,4 +475,42 @@ html[data-intro-seen] .preloader-count {
 
 .js .wordmark-char {
   transform: translateY(110%);
+}
+
+/* ── Page transitions ─────────────────────────────────────────────
+   All layers stay out of sight until a transition uses them. */
+.page-transition,
+.page-clone {
+  visibility: hidden;
+}
+
+.page-veil {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ── Bag drawer ───────────────────────────────────────────────────── */
+.bag-root {
+  visibility: hidden;
+}
+
+.bag-panel {
+  transform: translateX(100%);
+}
+
+/* ── Shop ─────────────────────────────────────────────────────────
+   Product card hover: the second image wipes up from the bottom. */
+.product-card-alt {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.product-card:hover .product-card-alt,
+.product-card:focus-visible .product-card-alt {
+  clip-path: inset(0 0 0 0);
+}
+
+/* The active filter keeps its underline. */
+.nav-link.is-active::after {
+  transform: scaleX(1);
 }

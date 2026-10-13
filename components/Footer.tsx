@@ -25,7 +25,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   },
   {
     title: "Collections",
-    links: [{ label: "New collection", href: "/#collections" }, { label: "Lookbook", href: "/#lookbook" }, { label: "Campaign film", href: "/#film" }, { label: "Archive" }],
+    links: [{ label: "New collection", href: "/collections/aw26" }, { label: "Lookbook", href: "/#lookbook" }, { label: "Campaign film", href: "/#film" }, { label: "Archive" }],
   },
   {
     title: "Client care",

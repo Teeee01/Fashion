@@ -91,6 +91,8 @@ export default function Preloader() {
       if (columns) master.add(columns, 0);
       const columnsDone = master.duration();
 
+      const entrance = buildIntroTimeline(mode);
+
       master.call(
         () => {
           markIntroSeen();
@@ -99,12 +101,29 @@ export default function Preloader() {
           html.classList.remove("is-preloading");
           setMounted(false);
           setIntro({ phase: "revealing" });
+          // Pages without an entrance of their own (anything but home) still
+          // warm from the white reveal to ivory.
+          if (!entrance) {
+            const pageBg = [html, document.body];
+            gsap.fromTo(
+              pageBg,
+              { backgroundColor: "#FFFFFF" },
+              {
+                backgroundColor: "#F2F1EE",
+                duration: mode === "reduced" ? 0.3 : 1.2,
+                ease: mode === "reduced" ? "none" : EASE.text,
+                onComplete: () => {
+                  html.classList.remove("is-intro-white");
+                  gsap.set(pageBg, { clearProps: "backgroundColor" });
+                },
+              },
+            );
+          }
         },
         undefined,
         columnsDone,
       );
 
-      const entrance = buildIntroTimeline(mode);
       if (entrance) {
         entrance.timeScale(ENTRANCE_SPEED[mode]);
         const at = ENTRANCE_AT[mode];

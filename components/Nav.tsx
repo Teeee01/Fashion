@@ -7,11 +7,13 @@ import { EASE } from "@/lib/motion";
 import { isSettledLayout, useIntro } from "@/lib/intro";
 import Monogram from "@/components/hero/Monogram";
 import MobileMenu from "./MobileMenu";
+import { bag, bagCount, useBag } from "@/lib/bag";
+import { DURATION } from "@/lib/motion";
 import { useLenis } from "./SmoothScroll";
 
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Collections", href: "/#collections" },
+  { label: "Collections", href: "/collections/aw26" },
   { label: "Lookbook", href: "/#lookbook" },
   { label: "Atelier", href: "/#atelier" },
   { label: "Journal", href: "/#journal" },
@@ -36,6 +38,18 @@ export default function Nav() {
   const { phase } = useIntro();
   const settled = isSettledLayout(phase);
   const lenis = useLenis();
+  const { items } = useBag();
+  const count = bagCount(items);
+
+  // Pages without the home intro (e.g. a product page opened directly):
+  // once the preloader has gone, simply fade the nav in.
+  useEffect(() => {
+    if (phase !== "settled") return;
+    const hidden = gsap.utils
+      .toArray<HTMLElement>(".nav-item, .nav-band, .nav-bag", header.current)
+      .filter((el) => getComputedStyle(el).opacity === "0");
+    if (hidden.length) gsap.to(hidden, { autoAlpha: 1, duration: DURATION.ui, ease: EASE.text, stagger: 0.04 });
+  }, [phase]);
 
   const show = (visible: boolean) => {
     if (hidden.current === !visible) return;
@@ -88,9 +102,24 @@ export default function Nav() {
               </Link>
             </li>
           ))}
+          {/* The bag joins the cluster once the nav has settled. */}
+          <li className={settled ? "" : "hidden"}>
+            <button type="button" className="nav-bag nav-link ui-label pointer-events-auto relative" onClick={() => bag.open()}>
+              Bag ({count})
+            </button>
+          </li>
         </ul>
 
-        <MobileMenu links={NAV_LINKS} open={menuOpen} onOpenChange={setMenuOpen} header={header} />
+        <div className="ml-auto flex items-center gap-6 md:hidden">
+          <button
+            type="button"
+            className={`nav-bag ui-label pointer-events-auto ${settled ? "" : "invisible"}`}
+            onClick={() => bag.open()}
+          >
+            Bag ({count})
+          </button>
+          <MobileMenu links={NAV_LINKS} open={menuOpen} onOpenChange={setMenuOpen} header={header} />
+        </div>
       </nav>
     </header>
   );

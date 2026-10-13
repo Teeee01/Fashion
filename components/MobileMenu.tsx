@@ -105,7 +105,7 @@ export default function MobileMenu({ links, open, onOpenChange, header }: Mobile
     <>
       <button
         type="button"
-        className="nav-item nav-menu-btn ui-label pointer-events-auto ml-auto md:hidden"
+        className="nav-item nav-menu-btn ui-label pointer-events-auto md:hidden"
         aria-expanded={open}
         aria-controls="mobile-menu"
         onClick={() => onOpenChange(!open)}

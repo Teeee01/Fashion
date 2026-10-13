@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER } from "@/lib/motion";
@@ -147,6 +148,9 @@ export default function Collection() {
                 {HEADLINE}
               </h2>
               <p className="body-copy mt-6 text-stone">Autumn–Winter 2026. Eight looks for women and men, cut in wool, silk and linen.</p>
+              <Link href="/collections/aw26" className="nav-link ui-label relative mt-8 inline-block">
+                View the collection
+              </Link>
             </div>
           </div>
 

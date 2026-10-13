@@ -48,6 +48,11 @@ After that, any time you want to see the site:
 | Journal section | `components/Journal.tsx` |
 | **Journal entries (titles, dates, images)** | `lib/journal.ts` |
 | Footer (newsletter, links, wordmark) | `components/Footer.tsx` |
+| **Products and seasons (names, prices, photos, sizes, details)** | `lib/products.ts` |
+| Collection page (`/collections/aw26`) | `components/shop/CollectionPage.tsx` |
+| Product page (`/product/...`) | `components/shop/ProductPage.tsx` |
+| Page transitions | `components/PageTransition.tsx` |
+| Bag drawer | `components/BagDrawer.tsx` (bag contents: `lib/bag.ts`) |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
@@ -63,6 +68,9 @@ Your own photos are shown in their original colour. If a photo can't be loaded, 
 look number appears instead of a broken image.
 
 ## Notes
+
+- The shop is front end only: "Add to bag" and the bag drawer work (and remember the bag in your browser),
+  but checkout and the newsletter aren't connected to a payment or mailing service yet.
 
 - Only the six brand colours exist in the styling system. Tailwind's default colours, rounded corners and
   shadows are switched off, so off-brand styles can't slip in by accident.

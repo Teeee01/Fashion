@@ -49,7 +49,7 @@ export default function Hero() {
 
   useLayoutEffect(() => {
     const build = (mode: IntroMode) => {
-      const links = visible(".nav-item");
+      const links = visible("header.nav .nav-item");
       const outlines = monogram.current?.querySelectorAll(".monogram-path") ?? [];
       const lines = captions.current?.querySelectorAll(".hero-line") ?? [];
       const html = document.documentElement;
@@ -119,6 +119,14 @@ export default function Hero() {
       return tl;
     };
 
+    // Coming back to the home page after the intro has already played
+    // (e.g. from a collection page): show the hero in its settled state.
+    if (getIntro().phase === "settled") {
+      ribbonState.contrast = 1;
+      gsap.set(ribbon.current, { autoAlpha: 1, x: window.innerWidth * 0.04, y: window.innerHeight * 0.06 });
+      gsap.set(captions.current, { autoAlpha: 0 });
+    }
+
     return registerIntroTimeline(build);
   }, []);
 
@@ -133,7 +141,7 @@ export default function Hero() {
     const { mode } = getIntro();
 
     const settle = () => {
-      const links = visible(".nav-link");
+      const links = visible("header.nav .nav-link.nav-item");
       const logo = document.querySelector<SVGSVGElement>(".nav-logo svg");
       const band = document.querySelector<HTMLElement>(".nav-band");
       const done = () => setIntro({ phase: "settled" });
@@ -152,7 +160,7 @@ export default function Hero() {
         const half = DURATION.reduced / 2;
         return tl
           .to([captions.current, monogram.current], { autoAlpha: 0, duration: half, ease: "none" }, 0)
-          .fromTo([logo, ...links, band], { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "none" }, half);
+          .fromTo([logo, ...links, band, ...visible("header.nav .nav-bag")], { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "none" }, half);
       }
 
       tl.timeScale(SETTLE_SPEED[mode]);
@@ -177,8 +185,9 @@ export default function Hero() {
         0.2,
       );
 
-      // 4 · The frosted band fades in behind the nav.
+      // 4 · The frosted band fades in behind the nav, and the bag joins the links.
       tl.fromTo(band, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: EASE.text }, 0.3);
+      tl.fromTo(visible("header.nav .nav-bag"), { autoAlpha: 0 }, { autoAlpha: 1, duration: DURATION.ui, ease: EASE.text }, 0.6);
 
       // 6 · Scrolling unlocks when the timeline completes (phase "settled").
       return tl;
