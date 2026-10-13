@@ -68,10 +68,10 @@ After that, any time you want to see the site:
 ## Replacing placeholder photos
 
 Until the real photography is ready, sections use placeholder editorial images from Unsplash, shown in
-black and white. To swap one in, drop your photo (JPG or WebP, ideally at least 2000px on the long side)
+their own colours. To swap one in, drop your photo (JPG or WebP, ideally at least 2000px on the long side)
 into `public/images/`, then tell Claude which file goes where. For the collection, each look's photo and
 name live in `lib/collection.ts`: changing a look's `src` to e.g. `"/images/look-01.jpg"` is all it takes.
-Your own photos are shown in their original colour. If a photo can't be loaded, a grey panel with the
+If a photo can't be loaded, a grey panel with the
 look number appears instead of a broken image.
 
 ## Notes

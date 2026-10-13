@@ -149,8 +149,8 @@ export default function Collection() {
               </h2>
               <p className="body-copy mt-6 text-stone" data-reveal="lines">Autumn Winter 2026. Eight looks for women and men, in wool, silk and linen.</p>
               <span className="mask mt-8">
-                <Link href="/collections/aw26" className="nav-link ui-label relative inline-block" data-reveal="block">
-                  See the whole collection
+                <Link href="/collections/aw26" className="btn-ink ui-label inline-block px-8 py-4 text-center" data-reveal="block">
+                  <span>See the whole collection</span>
                 </Link>
               </span>
             </div>

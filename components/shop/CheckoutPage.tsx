@@ -163,8 +163,8 @@ export default function CheckoutPage() {
             </p>
             <p className="mask mt-12">
               <span className="confirm-rise block">
-                <Link href="/collections" className="nav-link ui-label">
-                  Continue browsing →
+                <Link href="/collections" className="btn-ink ui-label inline-block px-8 py-4 text-center">
+                  <span>Continue browsing</span>
                 </Link>
               </span>
             </p>
@@ -186,8 +186,8 @@ export default function CheckoutPage() {
           </h1>
           {empty && (
             <p className="checkout-rise mt-10">
-              <Link href="/collections" className="nav-link ui-label">
-                Browse the collections →
+              <Link href="/collections" className="btn-ink ui-label inline-block px-8 py-4 text-center">
+                <span>Browse the collections</span>
               </Link>
             </p>
           )}

@@ -469,13 +469,10 @@ export default function Hero() {
               </span>
             ))}
           </p>
-          <span className="mask mt-2">
+          <span className="mask mt-4">
             <span className="hero-line block">
-              <Link
-                href="/#collections"
-                className="underline decoration-1 underline-offset-[3px] transition-colors duration-500 hover:text-stone"
-              >
-                See the collection
+              <Link href="/#collections" className="btn-ink ui-label inline-block px-7 py-3.5">
+                <span>See the collection</span>
               </Link>
             </span>
           </span>

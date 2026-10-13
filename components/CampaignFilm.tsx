@@ -163,10 +163,12 @@ export default function CampaignFilm() {
           </p>
         </div>
 
+        {/* Centred by its wrapper, so GSAP can lift the button without undoing it. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-[48px] flex justify-center">
         <button
           ref={playBtn}
           type="button"
-          className="film-play ui-label absolute bottom-[48px] left-1/2 -translate-x-1/2 text-ivory mix-blend-difference"
+          className="film-play btn-ink ui-label pointer-events-auto px-8 py-4"
           onClick={(e) => {
             e.stopPropagation();
             setOpen(true);
@@ -174,8 +176,9 @@ export default function CampaignFilm() {
           tabIndex={full ? 0 : -1}
           aria-hidden={!full}
         >
-          Play film
+          <span>Play film</span>
         </button>
+        </div>
       </div>
 
       <FilmPlayer open={open} onClose={() => setOpen(false)} returnFocus={playBtn} />

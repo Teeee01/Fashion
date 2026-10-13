@@ -87,21 +87,22 @@ export default function AboutPage() {
             ))}
           </div>
 
-          <div className="mt-12 flex flex-wrap gap-x-10 gap-y-4">
+          <div className="mt-12 flex flex-wrap gap-3">
             <span className="mask">
               <a
                 href={ABOUT.portfolio}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="nav-link ui-label relative inline-block"
+                className="btn-ink ui-label inline-block px-8 py-4 text-center"
                 data-reveal="block"
               >
-                See more of my work →<span className="sr-only"> (opens in a new tab)</span>
+                <span>See more of my work</span>
+                <span className="sr-only"> (opens in a new tab)</span>
               </a>
             </span>
             <span className="mask">
-              <Link href="/#contact" className="nav-link ui-label relative inline-block" data-reveal="block">
-                Get in touch →
+              <Link href="/#contact" className="btn-line ui-label inline-block px-8 py-4 text-center" data-reveal="block">
+                <span>Get in touch</span>
               </Link>
             </span>
           </div>

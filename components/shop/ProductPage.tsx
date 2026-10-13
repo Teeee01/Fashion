@@ -257,8 +257,8 @@ export default function ProductPage({ product }: { product: Product }) {
                     placeholder="Email for a restock notice"
                     className="w-full bg-transparent py-2 text-[14px] outline-none placeholder:text-stone"
                   />
-                  <button type="submit" className="ui-label py-2">
-                    Notify me
+                  <button type="submit" className="btn-ink ui-label mb-2 shrink-0 px-5 py-2.5">
+                    <span>Notify me</span>
                   </button>
                 </form>
               )}
@@ -277,9 +277,9 @@ export default function ProductPage({ product }: { product: Product }) {
                 <span>{added ? "Added ✓" : "Add to bag"}</span>
               </button>
             </div>
-            <div className="mask mt-4 text-center">
-              <button type="button" onClick={buyNow} className="product-rise buy-now ui-label relative inline-block cursor-pointer py-1">
-                Buy now
+            <div className="mask mt-3">
+              <button type="button" onClick={buyNow} className="product-rise btn-line ui-label block w-full py-4">
+                <span>Buy now</span>
               </button>
             </div>
 

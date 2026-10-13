@@ -164,8 +164,8 @@ export default function Footer() {
               className="w-full bg-transparent py-3 text-[14px] text-ink outline-none placeholder:text-stone"
               onInput={() => sent && setSent(false)}
             />
-            <button type="submit" aria-label="Subscribe" className="newsletter-submit ml-4 py-3 text-[18px] leading-none">
-              →
+            <button type="submit" className="btn-ink ui-label my-2 ml-4 shrink-0 px-6 py-3">
+              <span>Subscribe</span>
             </button>
             {/* The ink underline draws in from the left on focus. */}
             <span className="newsletter-line pointer-events-none absolute inset-x-0 -bottom-px h-px origin-left bg-ink" aria-hidden="true" />

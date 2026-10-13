@@ -277,8 +277,8 @@ export default function SignatureFeature({ signature: sig }: { signature: Signat
         {/* Shop the … */}
         <p className="ui-label mask absolute bottom-pad left-pad z-[2]">
           <span ref={shop} className="sig-shop block">
-            <Link href={href} className="nav-link relative inline-block text-ivory" data-transition-label={name}>
-              {sig.shop} →
+            <Link href={href} className="btn-ink ui-label inline-block px-8 py-4 text-center" data-transition-label={name}>
+              <span>{sig.shop}</span>
             </Link>
           </span>
         </p>
@@ -302,9 +302,9 @@ export default function SignatureFeature({ signature: sig }: { signature: Signat
               </li>
             ))}
           </ul>
-          <p className="ui-label mt-10">
-            <Link href={href} className="nav-link relative inline-block" data-transition-label={name}>
-              {sig.shop} →
+          <p className="mt-10">
+            <Link href={href} className="btn-ink ui-label inline-block px-8 py-4 text-center" data-transition-label={name}>
+              <span>{sig.shop}</span>
             </Link>
           </p>
         </div>

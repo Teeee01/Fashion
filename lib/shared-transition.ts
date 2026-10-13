@@ -82,7 +82,7 @@ export function takeOff(source: HTMLElement, id: number, reduced: boolean): Flig
   const img = document.createElement("img");
   img.alt = "";
   img.src = sourceImg?.currentSrc || sourceImg?.src || "";
-  // Match the card exactly (e.g. greyscale placeholders).
+  // Match the card exactly (any filter it has).
   if (sourceImg) img.style.filter = getComputedStyle(sourceImg).filter;
   clone.appendChild(img);
   document.body.append(veil, clone);
