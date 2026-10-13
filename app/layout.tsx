@@ -4,6 +4,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import Preloader from "@/components/Preloader";
 import Nav from "@/components/Nav";
 import Cursor from "@/components/Cursor";
+import Footer from "@/components/Footer";
 import { INTRO_SEEN_KEY } from "@/lib/intro-key";
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Preloader />
           <Nav />
           {children}
+          <Footer />
           <Cursor />
         </SmoothScroll>
       </body>

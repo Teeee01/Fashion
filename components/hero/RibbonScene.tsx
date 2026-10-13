@@ -24,6 +24,10 @@ export const CANVAS_OVERSCAN = 1.2;
 const SCROLL_TWIST = 0.75;
 /** …and adds this much rotation on top of the constant spin. */
 const SCROLL_ROTATION = Math.PI;
+/** In the footer the ribbon shrinks to this scale behind the wordmark. */
+const OUTRO_SCALE = 0.3;
+/** Fraction of the ribbon's length over which each end tapers. */
+const TAPER = 0.12;
 const SLAT_FILL = 0.88; // each slat fills 88% of its pitch; the rest is gap
 
 export type RibbonSceneProps = {
@@ -79,6 +83,10 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
       const theta = t * twist * Math.PI * 2;
       dummy.position.set(Math.sin(theta) * radius, t * length, Math.cos(theta) * radius);
       dummy.rotation.set(i % 2 ? PLEAT_TILT : -PLEAT_TILT, theta, 0);
+      // Both ends taper to a soft point (only ever seen when the ribbon is
+      // small, in the footer; in the hero the ends run off-screen).
+      const edge = Math.min((0.5 - Math.abs(t)) / TAPER, 1);
+      dummy.scale.set(Math.max(Math.sin((edge * Math.PI) / 2), 0.02), 1, 1);
       dummy.updateMatrix();
       m.setMatrixAt(i, dummy.matrix);
     }
@@ -91,14 +99,21 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
     if (!still) {
       // Constant slow spin plus a barely-there breathing twist. Never stops.
       // Scroll progress moves it right, adds rotation and tightens the twist.
+      // In the footer (outro 0 → 1) it glides to sit small behind the
+      // wordmark and its twist relaxes again.
       const p = ribbonState.progress;
+      const o = ribbonState.outro;
       spin.current += (delta * Math.PI * 2) / SECONDS_PER_TURN;
       if (group.current) {
         group.current.rotation.y = spin.current + p * SCROLL_ROTATION;
-        group.current.position.x = xAt(p);
+        const outroX = -viewport.width / 2 + viewport.width * ribbonState.outroX;
+        const outroY = (0.5 - ribbonState.outroY) * screenHeight;
+        group.current.position.x = lerp(xAt(p), outroX, o);
+        group.current.position.y = lerp(0, outroY, o);
+        group.current.scale.setScalar(lerp(1, OUTRO_SCALE, o));
       }
       const breath = 1 + BREATH_AMOUNT * Math.sin(state.clock.elapsedTime * BREATH_SPEED);
-      layout(TURNS * breath * (1 + p * SCROLL_TWIST));
+      layout(TURNS * breath * (1 + p * SCROLL_TWIST * (1 - o)));
     }
 
     // Contrast: washed-out (strong ambient, weak key) → full light and shade.

@@ -4,7 +4,8 @@ import { Component, forwardRef, useEffect, useRef, useState, type ReactNode } fr
 import dynamic from "next/dynamic";
 import { useLoadGate } from "@/lib/loading";
 import { prefersReducedMotion } from "@/lib/motion";
-import { useRibbonActive } from "@/lib/ribbon-state";
+import { ribbonOpacity, ribbonState, setRibbonActive, useRibbonActive } from "@/lib/ribbon-state";
+import { gsap } from "@/lib/gsap";
 
 // Three.js only loads in the browser, in its own chunk.
 const RibbonScene = dynamic(() => import("./RibbonScene"), { ssr: false });
@@ -53,9 +54,34 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
     setRenderer(supportsWebGL() ? "webgl" : "video");
   }, []);
 
-  // Rendering pauses once a section has faded the ribbon out.
-  const active = useRibbonActive();
+  // Scroll-driven fades (manifesto out, footer back in) meet here: the
+  // inner layer shows whichever is higher, and rendering pauses while
+  // nothing is showing the ribbon.
+  const fadeLayer = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const apply = () => {
+      const o = ribbonOpacity();
+      if (fadeLayer.current) fadeLayer.current.style.opacity = String(o);
+      setRibbonActive(o > 0.001);
+
+      // Video fallback: follow the footer placement too (move + shrink),
+      // matching what the 3D ribbon does.
+      const v = video.current;
+      if (v) {
+        const t = ribbonState.outro;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const startX = vw * (vw < 768 ? 0.34 : 0.22);
+        const dx = (ribbonState.outroX * vw - startX) * t;
+        const dy = (ribbonState.outroY - 0.5) * vh * t;
+        v.style.transform = t > 0 ? `translate(${dx}px, ${dy}px) scale(${1 - 0.7 * t})` : "";
+      }
+    };
+    gsap.ticker.add(apply);
+    return () => gsap.ticker.remove(apply);
+  }, []);
+  const active = useRibbonActive();
   useEffect(() => {
     const v = video.current;
     if (!v || still) return;
@@ -73,7 +99,7 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
     <div ref={setRefs} aria-hidden="true" className={`hero-ribbon ${className}`} data-rendering={active}>
       {/* Inner layer: scroll-driven fades act here, so they never fight the
           hero's entrance and settle tweens on the outer wrapper. */}
-      <div className="ribbon-fade absolute inset-0">
+      <div ref={fadeLayer} className="ribbon-fade absolute inset-0">
       {renderer === "webgl" && (
         <WebGLBoundary onError={() => setRenderer("video")}>
           <RibbonScene

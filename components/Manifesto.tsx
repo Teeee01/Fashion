@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/motion";
-import { ribbonState, setRibbonActive } from "@/lib/ribbon-state";
+import { ribbonState } from "@/lib/ribbon-state";
 
 const MANIFESTO =
   "We cut slowly. Every seam is a decision, every fold a quiet argument for keeping things longer. " +
@@ -28,7 +28,6 @@ export default function Manifesto() {
       const reduced = prefersReducedMotion();
       const split = SplitText.create(text.current, { type: "words", wordsClass: "manifesto-word" });
       const words = split.words;
-      const fade = document.querySelector(".ribbon-fade");
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
@@ -38,8 +37,6 @@ export default function Manifesto() {
           end: "bottom bottom",
           // A touch of smoothing on top of Lenis; reduced motion follows exactly.
           scrub: reduced ? true : 0.6,
-          // Stop drawing the ribbon once it has fully faded out.
-          onUpdate: (self) => setRibbonActive(self.progress < 1),
         },
       });
 
@@ -58,7 +55,8 @@ export default function Manifesto() {
         WORDS.start,
       );
 
-      if (fade) tl.fromTo(fade, { opacity: 1 }, { opacity: 0, duration: FADE.end - FADE.start }, FADE.start);
+      // The ribbon stops rendering by itself once nothing is showing it.
+      tl.fromTo(ribbonState, { fade: 1 }, { fade: 0, duration: FADE.end - FADE.start }, FADE.start);
 
       return () => split.revert();
     }, section);
@@ -69,7 +67,7 @@ export default function Manifesto() {
     return () => {
       ctx.revert();
       ribbonState.progress = 0;
-      setRibbonActive(true);
+      ribbonState.fade = 1;
     };
   }, []);
 

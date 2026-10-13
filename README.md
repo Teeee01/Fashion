@@ -47,6 +47,7 @@ After that, any time you want to see the site:
 | **Campaign film (replace with yours)** | `public/campaign.mp4`, `public/campaign.webm`, `public/campaign-poster.jpg` |
 | Journal section | `components/Journal.tsx` |
 | **Journal entries (titles, dates, images)** | `lib/journal.ts` |
+| Footer (newsletter, links, wordmark) | `components/Footer.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
