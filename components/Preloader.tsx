@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
-import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
+import { EASE, prefersReducedMotion } from "@/lib/motion";
 import { waitForAssets } from "@/lib/loading";
 import { hasSeenIntro, markIntroSeen, setIntro, useIntro, type IntroMode } from "@/lib/intro";
 import { useLenis } from "./SmoothScroll";
+import StairReveal, { type StairPlayOptions, type StairRevealHandle } from "./StairReveal";
 
 /**
  * The counter's path to 98%: fast at first, a hold at 23, a jump to 67,
@@ -23,12 +24,21 @@ const COUNT_STEPS: { to: number; duration: number; ease: string }[] = [
 const HOLD_AT_100 = 0.25;
 const EMPTY_PAUSE = 0.35;
 
-/** Temporary exit until the page reveal is built: the grey overlay fades away. */
-const EXIT_DURATION: Record<IntroMode, number> = { full: 1.0, quick: 0.6, reduced: DURATION.reduced };
+/**
+ * Column timing per mode. Full: 0.9s per column, 0.06s apart (≈1.2s).
+ * Quick (returning visit): squeezed into 0.6s in total.
+ * Reduced motion: StairReveal swaps the columns for a 0.3s fade on its own.
+ */
+const STAIR_TIMING: Record<IntroMode, StairPlayOptions> = {
+  full: { duration: 0.9, stagger: 0.06 },
+  quick: { duration: 0.45, stagger: 0.03 },
+  reduced: {},
+};
 
 export default function Preloader() {
   const overlay = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
+  const stair = useRef<StairRevealHandle>(null);
   const [mounted, setMounted] = useState(true);
   const { phase } = useIntro();
   const lenis = useLenis();
@@ -62,21 +72,18 @@ export default function Preloader() {
       if (counter.current) counter.current.textContent = `${Math.round(value.n)}%`;
     };
 
+    // White columns rise over the grey; once they're all full, the overlay
+    // and columns are removed together, leaving the page white underneath.
     const exit = async () => {
       if (cancelled) return;
-      markIntroSeen();
-      setIntro({ phase: "revealing" });
-      document.documentElement.classList.remove("is-preloading");
-      await play(
-        gsap.to(overlay.current, {
-          autoAlpha: 0,
-          duration: EXIT_DURATION[mode],
-          ease: mode === "reduced" ? "none" : EASE.text,
-        }),
-      );
+      await stair.current?.cover(STAIR_TIMING[mode]);
       if (cancelled) return;
-      setIntro({ phase: "done" });
+      markIntroSeen();
+      const html = document.documentElement;
+      html.classList.add("is-intro-white");
+      html.classList.remove("is-preloading");
       setMounted(false);
+      setIntro({ phase: "revealing" });
     };
 
     (async () => {
@@ -124,6 +131,7 @@ export default function Preloader() {
       >
         0%
       </span>
+      <StairReveal ref={stair} direction="up" columns={6} mobileColumns={4} color="var(--white)" />
     </div>
   );
 }

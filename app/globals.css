@@ -146,6 +146,13 @@ html.is-preloading {
   overflow: hidden;
 }
 
+/* The moment the preloader leaves, the page is pure white: the white
+   columns hand over to a white page with no visible seam. */
+html.is-intro-white,
+html.is-intro-white body {
+  background: var(--white);
+}
+
 html[data-intro-seen] .preloader-count {
   display: none;
 }
@@ -167,4 +174,10 @@ html[data-intro-seen] .preloader-count {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
+}
+
+/* StairReveal: neighbouring columns overlap by 1px so no hairline seam
+   of the layer underneath shows between them while they move. */
+.stair-col + .stair-col {
+  margin-left: -1px;
 }
