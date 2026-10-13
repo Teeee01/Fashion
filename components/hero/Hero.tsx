@@ -194,9 +194,10 @@ export default function Hero() {
   return (
     <section className="hero relative h-svh overflow-hidden" aria-label="Maison Sève">
 
-      {/* 20% taller than the hero (10vh spare above and below) so the ribbon
-          still runs off both edges after it drifts down. */}
-      <RibbonStage ref={ribbon} className="absolute inset-x-0 -top-[10svh] h-[120svh]" />
+      {/* Fixed, so the ribbon stays on screen through the manifesto below.
+          20% taller than the screen (10vh spare above and below) so it still
+          runs off both edges after it drifts down. */}
+      <RibbonStage ref={ribbon} className="fixed inset-x-0 -top-[10svh] h-[120svh]" />
 
       <Monogram
         ref={monogram}

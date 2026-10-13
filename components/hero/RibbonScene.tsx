@@ -20,11 +20,15 @@ const BREATH_SPEED = (Math.PI * 2 * 3) / SECONDS_PER_TURN;
 const PLEAT_TILT = 0.06; // radians, alternating per slat
 /** Canvas height ÷ screen height (see RibbonStage / .hero-ribbon). */
 export const CANVAS_OVERSCAN = 1.2;
+/** Scroll progress 0 → 1 tightens the twist by this much (1.5 → ~2.6 turns)… */
+const SCROLL_TWIST = 0.75;
+/** …and adds this much rotation on top of the constant spin. */
+const SCROLL_ROTATION = Math.PI;
 const SLAT_FILL = 0.88; // each slat fills 88% of its pitch; the rest is gap
 
 export type RibbonSceneProps = {
   slats: number;
-  /** "never" pauses rendering (e.g. while the hero is scrolled off-screen). */
+  /** "never" pauses rendering (e.g. once the ribbon has faded out). */
   frameloop: "always" | "never";
   /** Reduced motion: hold still and skip the washed-out entrance. */
   still: boolean;
@@ -41,6 +45,7 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   const key = useRef<THREE.DirectionalLight>(null);
   const fill = useRef<THREE.DirectionalLight>(null);
   const ready = useRef(false);
+  const spin = useRef(0);
   const { viewport } = useThree();
 
   // The canvas is 20% taller than the screen (10% spare above and below, so
@@ -51,8 +56,10 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   const width = screenHeight * (viewport.aspect * CANVAS_OVERSCAN < 1 ? 0.22 : 0.26);
   const pitch = length / slats;
   const radius = width * 0.16; // a loose spiral, not a flat twist
-  // Left-centre of the screen, behind the monogram.
-  const x = -viewport.width / 2 + viewport.width * (viewport.aspect * CANVAS_OVERSCAN < 1 ? 0.34 : 0.22);
+  // Starts left-centre (behind the monogram) and travels to the right side
+  // of the screen as the manifesto scrolls by.
+  const mobile = viewport.aspect * CANVAS_OVERSCAN < 1;
+  const xAt = (p: number) => -viewport.width / 2 + viewport.width * lerp(mobile ? 0.34 : 0.22, mobile ? 0.66 : 0.74, p);
 
   const geometry = useMemo(
     () => new THREE.BoxGeometry(width, pitch * SLAT_FILL, width * 0.012),
@@ -83,8 +90,15 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
   useFrame((state, delta) => {
     if (!still) {
       // Constant slow spin plus a barely-there breathing twist. Never stops.
-      if (group.current) group.current.rotation.y += (delta * Math.PI * 2) / SECONDS_PER_TURN;
-      layout(TURNS * (1 + BREATH_AMOUNT * Math.sin(state.clock.elapsedTime * BREATH_SPEED)));
+      // Scroll progress moves it right, adds rotation and tightens the twist.
+      const p = ribbonState.progress;
+      spin.current += (delta * Math.PI * 2) / SECONDS_PER_TURN;
+      if (group.current) {
+        group.current.rotation.y = spin.current + p * SCROLL_ROTATION;
+        group.current.position.x = xAt(p);
+      }
+      const breath = 1 + BREATH_AMOUNT * Math.sin(state.clock.elapsedTime * BREATH_SPEED);
+      layout(TURNS * breath * (1 + p * SCROLL_TWIST));
     }
 
     // Contrast: washed-out (strong ambient, weak key) → full light and shade.
@@ -105,7 +119,7 @@ function Ribbon({ slats, still, onReady }: Omit<RibbonSceneProps, "frameloop">) 
       {/* Soft key from the top-left, weak fill from the lower right. */}
       <directionalLight ref={key} position={[-6, 7, 6]} />
       <directionalLight ref={fill} position={[5, -2, 4]} />
-      <group ref={group} position={[x, 0, 0]}>
+      <group ref={group} position={[xAt(0), 0, 0]}>
         <instancedMesh ref={mesh} args={[geometry, material, slats]} frustumCulled={false} />
       </group>
     </>

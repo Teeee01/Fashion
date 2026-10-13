@@ -4,6 +4,7 @@ import { Component, forwardRef, useEffect, useRef, useState, type ReactNode } fr
 import dynamic from "next/dynamic";
 import { useLoadGate } from "@/lib/loading";
 import { prefersReducedMotion } from "@/lib/motion";
+import { useRibbonActive } from "@/lib/ribbon-state";
 
 // Three.js only loads in the browser, in its own chunk.
 const RibbonScene = dynamic(() => import("./RibbonScene"), { ssr: false });
@@ -33,7 +34,7 @@ function supportsWebGL() {
 
 /**
  * Holds the 3D ribbon: picks WebGL or the video fallback, pauses rendering
- * when the hero is off-screen, and tells the preloader when it's ready.
+ * when a section switches it off, and tells the preloader when it's ready.
  * The wrapper is what the hero timeline fades and lifts in.
  */
 const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function RibbonStage(
@@ -43,7 +44,6 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
   const markLoaded = useLoadGate("ribbon");
   const box = useRef<HTMLDivElement>(null);
   const [renderer, setRenderer] = useState<"pending" | "webgl" | "video">("pending");
-  const [onScreen, setOnScreen] = useState(true);
   const [slats, setSlats] = useState(260);
   const [still, setStill] = useState(false);
 
@@ -53,13 +53,15 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
     setRenderer(supportsWebGL() ? "webgl" : "video");
   }, []);
 
+  // Rendering pauses once a section has faded the ribbon out.
+  const active = useRibbonActive();
+  const video = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    const v = video.current;
+    if (!v || still) return;
+    if (active) v.play().catch(() => {});
+    else v.pause();
+  }, [active, still, renderer]);
 
   const setRefs = (el: HTMLDivElement | null) => {
     box.current = el;
@@ -68,12 +70,15 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
   };
 
   return (
-    <div ref={setRefs} aria-hidden="true" className={`hero-ribbon ${className}`}>
+    <div ref={setRefs} aria-hidden="true" className={`hero-ribbon ${className}`} data-rendering={active}>
+      {/* Inner layer: scroll-driven fades act here, so they never fight the
+          hero's entrance and settle tweens on the outer wrapper. */}
+      <div className="ribbon-fade absolute inset-0">
       {renderer === "webgl" && (
         <WebGLBoundary onError={() => setRenderer("video")}>
           <RibbonScene
             slats={slats}
-            frameloop={onScreen ? "always" : "never"}
+            frameloop={active ? "always" : "never"}
             still={still}
             onReady={markLoaded}
           />
@@ -81,6 +86,7 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
       )}
       {renderer === "video" && (
         <video
+          ref={video}
           className="ribbon-video"
           autoPlay={!still}
           muted
@@ -95,6 +101,7 @@ const RibbonStage = forwardRef<HTMLDivElement, { className?: string }>(function 
           <source src="/ribbon-loop.webm" type="video/webm" onError={markLoaded} />
         </video>
       )}
+      </div>
     </div>
   );
 });

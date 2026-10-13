@@ -34,6 +34,7 @@ After that, any time you want to see the site:
 | Navigation (links, logo, frosted band, hide on scroll) | `components/Nav.tsx` |
 | Mobile menu | `components/MobileMenu.tsx` |
 | Custom cursor | `components/Cursor.tsx` |
+| Manifesto section (01 — The House) | `components/Manifesto.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
