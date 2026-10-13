@@ -33,10 +33,13 @@ export default function ScrollReveals() {
       ScrollTrigger.batch(blocks, {
         start: "top 94%",
         once: true,
+        // ctx.add: tweens made later still belong to this page and are cleaned up with it.
         onEnter: (batch) =>
-          reduced
-            ? gsap.to(batch, { autoAlpha: 1, duration: DURATION.reduced, ease: "none" })
-            : gsap.to(batch, { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
+          ctx.add(() =>
+            reduced
+              ? gsap.to(batch, { autoAlpha: 1, duration: DURATION.reduced, ease: "none" })
+              : gsap.to(batch, { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
+          ),
       });
 
       const cards = gsap.utils.toArray<HTMLElement>('[data-reveal="card"]');
@@ -45,14 +48,16 @@ export default function ScrollReveals() {
         start: "top 92%",
         once: true,
         onEnter: (batch) =>
-          batch.forEach((card, i) => {
-            const media = card.querySelector("[data-shared-source]");
-            const meta = card.querySelector(".product-meta");
-            const reveal = clipRise(media, media?.firstElementChild ?? null, reduced);
-            if (reduced) gsap.set(meta, { y: 0, yPercent: 0 });
-            else reveal.fromTo(meta, { y: 0, yPercent: 100 }, { yPercent: 0, duration: DURATION.text, ease: EASE.text }, 0.5);
-            reveal.delay(i * STAGGER.columns).play();
-          }),
+          ctx.add(() =>
+            batch.forEach((card, i) => {
+              const media = card.querySelector("[data-shared-source]");
+              const meta = card.querySelector(".product-meta");
+              const reveal = clipRise(media, media?.firstElementChild ?? null, reduced);
+              if (reduced) gsap.set(meta, { y: 0, yPercent: 0 });
+              else reveal.fromTo(meta, { y: 0, yPercent: 100 }, { yPercent: 0, duration: DURATION.text, ease: EASE.text }, 0.5);
+              reveal.delay(i * STAGGER.columns).play();
+            }),
+          ),
       });
     });
 

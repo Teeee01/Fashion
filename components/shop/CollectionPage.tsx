@@ -71,20 +71,23 @@ export default function CollectionPage({ label, title: heading, intro, products 
       ScrollTrigger.batch(cards, {
         start: "top 92%",
         once: true,
+        // ctx.add: reveals made later still belong to this page and are cleaned up with it.
         onEnter: (batch) =>
-          batch.forEach((card, i) => {
-            const media = card.querySelector("[data-shared-source]");
-            const reveal = clipRise(media, media?.firstElementChild ?? null, reduced);
-            if (!reduced) {
-              reveal.fromTo(
-                card.querySelector(".product-meta"),
-                { y: 0, yPercent: 100 },
-                { yPercent: 0, duration: DURATION.text, ease: EASE.text },
-                0.5,
-              );
-            }
-            reveal.delay(i * STAGGER.columns).play();
-          }),
+          ctx.add(() =>
+            batch.forEach((card, i) => {
+              const media = card.querySelector("[data-shared-source]");
+              const reveal = clipRise(media, media?.firstElementChild ?? null, reduced);
+              if (!reduced) {
+                reveal.fromTo(
+                  card.querySelector(".product-meta"),
+                  { y: 0, yPercent: 100 },
+                  { yPercent: 0, duration: DURATION.text, ease: EASE.text },
+                  0.5,
+                );
+              }
+              reveal.delay(i * STAGGER.columns).play();
+            }),
+          ),
       });
     });
     return () => {

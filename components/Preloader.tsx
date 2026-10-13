@@ -6,6 +6,7 @@ import { COUNT_FINAL_STEP, COUNT_STEPS, EASE, prefersReducedMotion } from "@/lib
 import { waitForAssets } from "@/lib/loading";
 import {
   buildIntroTimeline,
+  getIntro,
   hasSeenIntro,
   markIntroSeen,
   setIntro,
@@ -133,7 +134,9 @@ export default function Preloader() {
       await play(master);
       if (cancelled) return;
       // A page with an entrance settles itself afterwards; otherwise we're done.
-      setIntro({ phase: entrance ? "done" : "settled" });
+      // (Only if the visitor is still watching it: if they've already left for
+      // another page, the intro is over and must not lock that page's scroll.)
+      if (getIntro().phase === "revealing") setIntro({ phase: entrance ? "done" : "settled" });
     };
 
     (async () => {

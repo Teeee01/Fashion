@@ -54,6 +54,7 @@ After that, any time you want to see the site:
 | Collection pages (`/collections`, `/collections/aw26`) | `components/shop/CollectionPage.tsx` |
 | Product page (`/product/...`) | `components/shop/ProductPage.tsx` |
 | Page transitions | `components/PageTransition.tsx` |
+| The image that flies from a card into the product page | `lib/shared-transition.ts` |
 | Bag drawer | `components/BagDrawer.tsx` (bag contents: `lib/bag.tsx`) |
 | Checkout page (`/checkout`) | `components/shop/CheckoutPage.tsx` |
 | **Payments: where Stripe or Paystack plugs in** | `lib/checkout.ts` |

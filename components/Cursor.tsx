@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { getTransition, useTransitionState } from "@/lib/transition";
 import { gsap } from "@/lib/gsap";
 import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
 
@@ -55,6 +57,9 @@ export default function Cursor() {
   const root = useRef<HTMLDivElement>(null);
   const disc = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
+  const recheck = useRef<() => void>(() => {});
+  const pathname = usePathname();
+  const transition = useTransitionState();
 
   // Only on devices with a real mouse, and not on phone-sized screens.
   useEffect(() => {
@@ -80,6 +85,8 @@ export default function Cursor() {
 
     let current: CursorState = "default";
     let shown = false;
+    let lastX = -1;
+    let lastY = -1;
 
     const setState = (next: CursorState) => {
       if (next === current) return;
@@ -108,10 +115,22 @@ export default function Cursor() {
       if (!shown) gsap.set(el, { x: e.clientX, y: e.clientY }); // start where the mouse is
       toX(e.clientX);
       toY(e.clientY);
+      lastX = e.clientX;
+      lastY = e.clientY;
       show(true);
       setState(stateFor(e.target));
     };
     const onLeave = () => show(false);
+
+    // The page under a still mouse can change (a transition covers it, a new
+    // page arrives): re-read what's under the pointer instead of keeping
+    // the old page's label (e.g. VIEW) on screen.
+    recheck.current = () => {
+      if (!shown) return;
+      const { phase } = getTransition();
+      if (phase === "covering" || phase === "swapping") return setState("default");
+      requestAnimationFrame(() => setState(stateFor(document.elementFromPoint(lastX, lastY))));
+    };
 
     window.addEventListener("pointermove", onMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onLeave);
@@ -119,8 +138,11 @@ export default function Cursor() {
       window.removeEventListener("pointermove", onMove);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       gsap.killTweensOf([el, disc.current, label.current]);
+      recheck.current = () => {};
     };
   }, [enabled]);
+
+  useEffect(() => recheck.current(), [pathname, transition.phase]);
 
   if (!enabled) return null;
 

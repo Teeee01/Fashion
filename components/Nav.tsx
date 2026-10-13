@@ -38,7 +38,8 @@ export default function Nav() {
   const { phase } = useIntro();
   const settled = isSettledLayout(phase);
   const lenis = useLenis();
-  const { count, openBag } = useBag();
+  const { count, ready, openBag } = useBag();
+  const lastCount = useRef<number | null>(null);
 
   // Pages without the home intro (e.g. a product page opened directly):
   // once the preloader has gone, simply fade the nav in.
@@ -49,6 +50,22 @@ export default function Nav() {
       .filter((el) => getComputedStyle(el).opacity === "0");
     if (hidden.length) gsap.to(hidden, { autoAlpha: 1, duration: DURATION.ui, ease: EASE.text, stagger: 0.04 });
   }, [phase]);
+
+  // Something was added: bring the nav back and pop the count (1 → 1.2 → 1).
+  useEffect(() => {
+    if (!ready) return;
+    const before = lastCount.current;
+    lastCount.current = count;
+    if (before === null || count <= before) return;
+    show(true);
+    if (prefersReducedMotion()) return;
+    gsap.fromTo(
+      header.current?.querySelectorAll(".nav-count") ?? [],
+      { scale: 1 },
+      { keyframes: { scale: [1, 1.2, 1] }, duration: 0.45, ease: "power2.out", overwrite: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, ready]);
 
   const show = (visible: boolean) => {
     if (hidden.current === !visible) return;
@@ -107,7 +124,7 @@ export default function Nav() {
           {/* The bag joins the cluster once the nav has settled. */}
           <li className={settled ? "" : "hidden"}>
             <button type="button" className="nav-bag nav-link ui-label pointer-events-auto relative" onClick={openBag}>
-              Checkout ({count})
+              Checkout (<span className="nav-count inline-block">{count}</span>)
             </button>
           </li>
         </ul>
@@ -118,7 +135,7 @@ export default function Nav() {
             className={`nav-bag ui-label pointer-events-auto ${settled ? "" : "invisible"}`}
             onClick={openBag}
           >
-            Checkout ({count})
+            Checkout (<span className="nav-count inline-block">{count}</span>)
           </button>
           <MobileMenu links={NAV_LINKS} open={menuOpen} onOpenChange={setMenuOpen} header={header} />
         </div>

@@ -6,7 +6,8 @@
    To edit a product: change its fields below. Prices are in both USD
    and NGN (USD shows by default; visitors can switch in the footer).
    `stock` is per size: 0 means sold out (the size shows crossed out).
-   Images: the first is the main image (and the card image), the second
+   Images: ONLY photos of this product (the gallery never shows another
+   garment). The first is the main image and the card image; the second
    shows on card hover. Unsplash links are placeholders: put your photos
    in /public/images and use e.g. "/images/coat-1.jpg".
    ────────────────────────────────────────────────────────────── */
@@ -113,13 +114,28 @@ const IMG = {
   cap: u("1588850561407-ed78c282e89b"),
   cap2: u("1521369909029-2afed882baee"),
 };
-const EXTRA = [IMG.cloth, IMG.rack, IMG.portraitW, IMG.lookAway, IMG.natural, IMG.field, IMG.portraitM];
+/* Closer crops of the same photo, so a product's gallery never borrows
+   another garment's picture (fp = the point to zoom on, z = how far). */
+const CROPS = [
+  { crop: "crop=focalpoint&fp-x=0.5&fp-y=0.32&fp-z=1.8", view: "detail" },
+  { crop: "crop=focalpoint&fp-x=0.5&fp-y=0.7&fp-z=1.6", view: "lower detail" },
+  { crop: "crop=focalpoint&fp-x=0.5&fp-y=0.5&fp-z=2.6", view: "fabric close-up" },
+  { crop: "crop=entropy", view: "alternate view" },
+];
 
-/** Six images: the given ones first, topped up from the extras. */
-function gallery(name: string, ...first: string[]) {
-  const all = [...first, ...EXTRA.filter((x) => !first.includes(x))].slice(0, 6);
-  const views = ["front", "in motion", "back", "detail", "styled", "fabric close-up"];
-  return all.map((src, i) => ({ src, alt: `${name}, ${views[i] ?? "view"}` }));
+/**
+ * A product's gallery: ONLY its own photos (`own`), followed by closer
+ * crops of them, up to five images. Never another product's photos.
+ * With your real photography, list a product's own images in `images`
+ * directly, e.g. [{ src: "/images/coat-1.jpg", alt: "…" }, …].
+ */
+function gallery(name: string, ...own: string[]) {
+  const shots = own.map((src, i) => ({ src, alt: `${name}, ${i === 0 ? "front" : "second view"}` }));
+  for (const c of CROPS) {
+    if (shots.length >= 5) break;
+    shots.push({ src: own[0].replace("crop=faces,top", c.crop), alt: `${name}, ${c.view}` });
+  }
+  return shots;
 }
 
 const CLOTHING = ["XS", "S", "M", "L", "XL"];
@@ -153,7 +169,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.stone],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["XL"], ["XS"]),
-    images: gallery("Wool crepe column coat", IMG.coat, IMG.hanger, IMG.wrap),
+    images: gallery("Wool crepe column coat", IMG.coat, IMG.hanger),
     related: ["raw-edge-wool-trouser", "embroidered-monogram-cap", "sculpted-leather-loafer", "linen-wrap-shirt"],
   },
   {
@@ -171,7 +187,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.stone, COLOURS.ivory],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["S"]),
-    images: gallery("Double-faced cashmere jacket", IMG.jacket, IMG.blazer),
+    images: gallery("Double-faced cashmere jacket", IMG.jacket),
     related: ["pleated-silk-skirt", "silk-twill-scarf", "tailored-wide-leg-pants"],
   },
   {
@@ -188,7 +204,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink],
     sizes: ["S/M", "L/XL"],
     stock: stock(["S/M", "L/XL"]),
-    images: gallery("Felted wool cape", IMG.poplin, IMG.slip),
+    images: gallery("Felted wool cape", IMG.field),
     related: ["bias-cut-slip-dress", "leather-column-bag", "wool-felt-bucket-hat"],
   },
   // ── Dresses ──
@@ -206,7 +222,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ivory, COLOURS.ink],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["M"], ["L"]),
-    images: gallery("Pleated silk skirt", IMG.skirt, IMG.poplin),
+    images: gallery("Pleated silk skirt", IMG.skirt),
     related: ["double-faced-cashmere-jacket", "oversized-poplin-shirt", "silk-twill-scarf"],
   },
   {
@@ -223,7 +239,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.fog],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["XS"]),
-    images: gallery("Bias-cut slip dress", IMG.slip, IMG.skirt),
+    images: gallery("Bias-cut slip dress", IMG.slip),
     related: ["felted-wool-cape", "leather-column-bag", "sculpted-leather-loafer"],
   },
   // ── Tailoring ──
@@ -241,7 +257,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.stone],
     sizes: CLOTHING,
     stock: stock(CLOTHING, [], ["XL"]),
-    images: gallery("Sculpted shoulder blazer", IMG.blazer, IMG.jacket),
+    images: gallery("Sculpted shoulder blazer", IMG.blazer),
     related: ["tailored-wide-leg-pants", "oversized-poplin-shirt", "sculpted-leather-loafer"],
   },
   // ── Trousers ──
@@ -259,7 +275,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.stone, COLOURS.ink],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["XS"]),
-    images: gallery("Raw-edge wool trouser", IMG.trouser, IMG.portraitM),
+    images: gallery("Raw-edge wool trouser", IMG.natural),
     related: ["wool-crepe-column-coat", "linen-wrap-shirt", "sculpted-leather-loafer"],
   },
   {
@@ -277,7 +293,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.stone, COLOURS.ivory],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["L"], ["S"]),
-    images: gallery("Tailored wide-leg pants", IMG.trouser, IMG.natural, IMG.portraitM),
+    images: gallery("Tailored wide-leg pants", IMG.trouser),
     related: ["sculpted-shoulder-blazer", "oversized-poplin-shirt", "sculpted-leather-loafer", "embroidered-monogram-cap"],
   },
   // ── Shirts ──
@@ -295,7 +311,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.chalk, COLOURS.ink],
     sizes: CLOTHING,
     stock: stock(CLOTHING),
-    images: gallery("Linen wrap shirt", IMG.wrap, IMG.coat),
+    images: gallery("Linen wrap shirt", IMG.wrap),
     related: ["raw-edge-wool-trouser", "wool-crepe-column-coat", "silk-twill-scarf"],
   },
   {
@@ -312,7 +328,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.chalk, COLOURS.stone],
     sizes: CLOTHING,
     stock: stock(CLOTHING, ["XL"]),
-    images: gallery("Oversized poplin shirt", IMG.poplin, IMG.skirt),
+    images: gallery("Oversized poplin shirt", IMG.poplin),
     related: ["tailored-wide-leg-pants", "pleated-silk-skirt", "sculpted-shoulder-blazer"],
   },
   // ── Footwear ──
@@ -331,7 +347,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.stone],
     sizes: SHOES,
     stock: stock(SHOES, ["EU 36", "EU 46"], ["EU 43"]),
-    images: gallery("Sculpted leather loafer", IMG.shoe, IMG.shoe2, IMG.cloth),
+    images: gallery("Sculpted leather loafer", IMG.shoe),
     related: ["tailored-wide-leg-pants", "wool-crepe-column-coat", "leather-ankle-boot"],
   },
   {
@@ -348,7 +364,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink],
     sizes: SHOES,
     stock: stock(SHOES, ["EU 38", "EU 45"]),
-    images: gallery("Leather ankle boot", IMG.shoe2, IMG.shoe),
+    images: gallery("Leather ankle boot", IMG.shoe2),
     related: ["raw-edge-wool-trouser", "felted-wool-cape", "sculpted-leather-loafer"],
   },
   // ── Headwear ──
@@ -367,7 +383,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.ivory, COLOURS.stone],
     sizes: CAPS,
     stock: stock(CAPS, ["L"]),
-    images: gallery("Embroidered monogram cap", IMG.cap, IMG.cap2, IMG.portraitM),
+    images: gallery("Embroidered monogram cap", IMG.cap, IMG.cap2),
     related: ["wool-crepe-column-coat", "oversized-poplin-shirt", "tailored-wide-leg-pants"],
   },
   {
@@ -384,7 +400,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.stone],
     sizes: CAPS,
     stock: stock(CAPS),
-    images: gallery("Wool felt bucket hat", IMG.hat, IMG.field),
+    images: gallery("Wool felt bucket hat", IMG.hat),
     related: ["felted-wool-cape", "silk-twill-scarf", "leather-column-bag"],
   },
   // ── Accessories ──
@@ -402,7 +418,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ivory, COLOURS.ink],
     sizes: ONE,
     stock: stock(ONE),
-    images: gallery("Silk twill scarf", IMG.lookAway, IMG.portraitW),
+    images: gallery("Silk twill scarf", IMG.lookAway),
     related: ["double-faced-cashmere-jacket", "pleated-silk-skirt", "wool-felt-bucket-hat"],
   },
   {
@@ -419,7 +435,7 @@ export const PRODUCTS: Product[] = [
     colours: [COLOURS.ink, COLOURS.stone],
     sizes: ONE,
     stock: stock(ONE),
-    images: gallery("Leather column bag", IMG.hat, IMG.field),
+    images: gallery("Leather column bag", IMG.portraitW),
     related: ["bias-cut-slip-dress", "felted-wool-cape", "silk-twill-scarf"],
   },
 ];

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { gsap } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER, prefersReducedMotion } from "@/lib/motion";
 import { navigate, usePageReveal } from "@/lib/transition";
 import { useBag } from "@/lib/bag";
@@ -22,26 +22,31 @@ import ProductCard from "./ProductCard";
 import ZoomViewer from "./ZoomViewer";
 import SizeGuide from "./SizeGuide";
 import QtyStepper from "@/components/QtyStepper";
+import { NAV_OFFSET, useLenis } from "@/components/SmoothScroll";
 
 /* ──────────────────────────────────────────────────────────────
    /product/[slug]
-   Left (~60%): gallery (sticky thumbnails + stacked images; carousel on
-   phones), zoom on click. Right (~40%, sticky): breadcrumb, name, price,
-   colours, sizes (sold out crossed out, with "Notify me"), size guide,
-   quantity, ADD TO BAG (→ "ADDED ✓"), BUY NOW, then accordions.
-   Below: "Worn with" and "You may also like". Phones get a sticky
-   ADD TO BAG bar at the bottom of the screen.
+   Left (~60%): a fixed image viewer of THIS product's photos only
+   (it stays put while the page scrolls; carousel on phones).
+   Right (~40%): the details, which scroll with the page: breadcrumb,
+   name, price, colours, sizes (sold out crossed out, with "Notify me"),
+   size guide, quantity, ADD TO BAG (→ "ADDED ✓" and the bag drawer),
+   BUY NOW (→ checkout), then accordions. The page ends where the
+   details end. Below: "Worn with" and "You may also like", the only
+   places other products appear. Phones get a sticky ADD TO BAG bar.
    ────────────────────────────────────────────────────────────── */
 
 export default function ProductPage({ product }: { product: Product }) {
   const panel = useRef<HTMLDivElement>(null);
   const sizesRef = useRef<HTMLDivElement>(null);
+  const sizeBox = useRef<HTMLDivElement>(null);
+  const lenis = useLenis();
   const oneSize = product.sizes.length === 1;
   const firstInStock = product.sizes.find((s) => !isSoldOut(product, s)) ?? null;
   const [colour, setColour] = useState<Colour>(product.colours[0]);
   const [size, setSize] = useState<string | null>(oneSize ? firstInStock : null);
   const [qty, setQty] = useState(1);
-  const [message, setMessage] = useState("");
+  const [sizeError, setSizeError] = useState(false);
   const [added, setAdded] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [guide, setGuide] = useState(false);
@@ -71,27 +76,36 @@ export default function ProductPage({ product }: { product: Product }) {
     return () => void tl.kill();
   });
 
-  const validate = () => {
-    if (!size) {
-      setMessage("Please choose a size.");
-      sizesRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
-      sizesRef.current?.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
-      return false;
-    }
-    setMessage("");
-    return true;
+  /** No size yet: bring the sizes into view, shake them gently, outline them and say so. */
+  const askForSize = () => {
+    setSizeError(true);
+    const box = sizeBox.current;
+    if (!box) return;
+    const reduced = prefersReducedMotion();
+    const shake = () => {
+      if (!reduced) gsap.fromTo(box, { x: 0 }, { keyframes: { x: [0, -4, 4, -4, 4, -4, 4, 0] }, duration: 0.3, ease: "none", overwrite: true });
+      box.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus({ preventScroll: true });
+    };
+    const r = box.getBoundingClientRect();
+    const inView = r.top >= NAV_OFFSET && r.bottom <= innerHeight - 80;
+    if (inView || !lenis) return shake();
+    lenis.scrollTo(box, { offset: -innerHeight / 3, duration: reduced ? 0 : 0.8, force: true, onComplete: shake });
   };
 
-  const addToBag = () => {
-    if (!validate() || !size) return false;
-    add({ slug: product.slug, size, colour: colour.name, qty });
+  const addToBag = (reveal: boolean) => {
+    if (!size) {
+      askForSize();
+      return false;
+    }
+    add({ slug: product.slug, size, colour: colour.name, qty }, { reveal });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
     return true;
   };
 
+  // BUY NOW: into the bag (no drawer), then straight to checkout.
   const buyNow = () => {
-    if (addToBag()) navigate("/checkout");
+    if (addToBag(false)) navigate("/checkout");
   };
 
   const related = product.related.map(getProduct).filter((p): p is Product => !!p).slice(0, 4);
@@ -106,15 +120,15 @@ export default function ProductPage({ product }: { product: Product }) {
 
   return (
     <main id="main" tabIndex={-1} className="pb-28 pt-[88px] md:pb-[12vh] md:pt-[110px]">
-      <div className="grid-12 gap-y-10">
-        {/* Gallery (~60%) */}
-        <div className="col-span-12 md:col-span-7">
+      <div className="grid-12 gap-y-10 md:items-start">
+        {/* Gallery (~60%): fixed in place while the details scroll */}
+        <div className="col-span-12 md:sticky md:top-[110px] md:col-span-7 md:h-[calc(100svh-134px)]">
           <ProductGallery images={product.images} onZoom={setZoom} />
         </div>
 
-        {/* Info (~40%, sticky) */}
+        {/* Details (~40%): scroll with the page */}
         <div className="col-span-12 md:col-span-4 md:col-start-9">
-          <div ref={panel} className="md:sticky md:top-[110px]">
+          <div ref={panel}>
             <nav aria-label="Breadcrumb" className="ui-label mask text-stone">
               <ol className="product-rise flex flex-wrap gap-x-2">
                 <li>
@@ -174,6 +188,8 @@ export default function ProductPage({ product }: { product: Product }) {
               <legend className="mask mb-3 flex w-full justify-between">
                 <span className="product-rise ui-label block text-stone">Size</span>
               </legend>
+              {/* Outside the mask, so the outline and the shake aren't clipped. */}
+              <div ref={sizeBox} className={`outline-offset-[6px] ${sizeError ? "outline outline-1 outline-ink" : ""}`}>
               <div className="mask">
                 <div className="product-rise flex flex-wrap gap-2">
                   {product.sizes.map((s) => {
@@ -187,7 +203,7 @@ export default function ProductPage({ product }: { product: Product }) {
                         aria-label={out ? `${s}, sold out` : s}
                         onClick={() => {
                           setSize(s);
-                          setMessage("");
+                          setSizeError(false);
                         }}
                         className={`size-btn ui-label relative min-w-[48px] border px-3 py-3 ${
                           out
@@ -203,6 +219,12 @@ export default function ProductPage({ product }: { product: Product }) {
                   })}
                 </div>
               </div>
+              </div>
+              {sizeError && (
+                <p className="mt-4 text-[13px] leading-[1.4] text-ink" role="alert">
+                  Please select a size
+                </p>
+              )}
               <div className="mask mt-3">
                 <div className="product-rise flex flex-wrap items-baseline justify-between gap-3">
                   {chart !== "none" && (
@@ -241,25 +263,22 @@ export default function ProductPage({ product }: { product: Product }) {
                 </form>
               )}
               {notify === "sent" && <p className="ui-label mt-3 text-stone">We'll write as soon as it's back.</p>}
-              <p className="ui-label mt-3 min-h-[1.2em] text-stone" role="status" aria-live="polite">
-                {message}
-              </p>
             </fieldset>
 
             {/* Quantity + actions */}
-            <div className="mask mt-2">
+            <div className="mask mt-6">
               <div className="product-rise flex items-center gap-4">
                 <span className="ui-label text-stone">Quantity</span>
                 <QtyStepper value={qty} max={maxQty} onChange={setQty} />
               </div>
             </div>
             <div className="mask mt-6">
-              <button type="button" onClick={addToBag} className="product-rise btn-ink ui-label block w-full py-4" aria-live="polite">
+              <button type="button" onClick={() => addToBag(true)} className="product-rise btn-ink ui-label block w-full py-4" aria-live="polite">
                 <span>{added ? "Added ✓" : "Add to bag"}</span>
               </button>
             </div>
             <div className="mask mt-4 text-center">
-              <button type="button" onClick={buyNow} className="product-rise nav-link ui-label relative inline-block">
+              <button type="button" onClick={buyNow} className="product-rise buy-now ui-label relative inline-block cursor-pointer py-1">
                 Buy now
               </button>
             </div>
@@ -292,7 +311,7 @@ export default function ProductPage({ product }: { product: Product }) {
             {size ? ` · ${size}` : ""}
           </p>
         </div>
-        <button type="button" onClick={addToBag} className="btn-ink ui-label shrink-0 px-6 py-3">
+        <button type="button" onClick={() => addToBag(true)} className="btn-ink ui-label shrink-0 px-6 py-3">
           <span>{added ? "Added ✓" : size ? "Add to bag" : "Choose size"}</span>
         </button>
       </div>
@@ -329,18 +348,43 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
   const bar = useRef<HTMLSpanElement>(null);
   const id = useId();
 
+  const lenis = useLenis();
+  const row = useRef<HTMLDivElement>(null);
+
   const toggle = () => {
     const next = !open;
     setOpen(next);
     const reduced = prefersReducedMotion();
     const d = reduced ? DURATION.reduced : 0.6;
     const ease = reduced ? "none" : EASE.big;
-    gsap.to(body.current, { height: next ? "auto" : 0, duration: d, ease, overwrite: "auto" });
+    gsap.to(body.current, {
+      height: next ? "auto" : 0,
+      duration: d,
+      ease,
+      overwrite: "auto",
+      onComplete: () => {
+        // The page got taller or shorter: re-measure everything scroll-driven.
+        ScrollTrigger.refresh();
+        lenis?.resize();
+        if (next) revealOpened();
+      },
+    });
     gsap.to(bar.current, { scaleY: next ? 0 : 1, duration: d, ease, overwrite: "auto" });
   };
 
+  // If the opened text runs below the screen, glide it into view (without
+  // pushing its heading up under the nav).
+  const revealOpened = () => {
+    const r = row.current?.getBoundingClientRect();
+    if (!r || !lenis) return;
+    const overflow = r.bottom - (innerHeight - 32);
+    if (overflow <= 0) return;
+    const by = Math.min(overflow, r.top - NAV_OFFSET - 16);
+    if (by > 0) lenis.scrollTo(window.scrollY + by, { duration: prefersReducedMotion() ? 0 : 0.8, force: true });
+  };
+
   return (
-    <div className="border-t border-hairline">
+    <div ref={row} className="border-t border-hairline">
       <button type="button" className="flex w-full items-center justify-between py-4 text-left" aria-expanded={open} aria-controls={id} onClick={toggle}>
         <span className="ui-label">{title}</span>
         <span className="relative h-[9px] w-[9px]" aria-hidden="true">

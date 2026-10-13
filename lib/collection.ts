@@ -22,6 +22,6 @@ export const LOOKS: Look[] = [
   { number: "04", slug: "linen-wrap-shirt", name: "Linen wrap shirt", src: unsplash("1539109136881-3be0616acf4b"), alt: "Model in a loose wrap shirt" },
   { number: "05", slug: "sculpted-shoulder-blazer", name: "Sculpted shoulder blazer", src: unsplash("1529139574466-a303027c1d8b"), alt: "Model in a sharp-shouldered blazer" },
   { number: "06", slug: "bias-cut-slip-dress", name: "Bias-cut slip dress", src: unsplash("1485968579580-b6d095142e6e"), alt: "Model in a draped slip dress" },
-  { number: "07", slug: "raw-edge-wool-trouser", name: "Raw-edge wool trouser", src: unsplash("1503342217505-b0a15ec3261c"), alt: "Model in wide wool trousers" },
+  { number: "07", slug: "tailored-wide-leg-pants", name: "Tailored wide-leg pants", src: unsplash("1503342217505-b0a15ec3261c"), alt: "Model in wide wool trousers" },
   { number: "08", slug: "oversized-poplin-shirt", name: "Oversized poplin shirt", src: unsplash("1487222477894-8943e31ef7b2"), alt: "Model in an oversized white shirt" },
 ];

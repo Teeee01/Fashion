@@ -9,7 +9,7 @@ import { useLenis } from "./SmoothScroll";
 
 /**
  * A panel that slides in from the right (0.7s, house ease) while the page
- * behind dims to 30% ink; anything marked `.drawer-rise` inside then
+ * behind dims to 30% ink (on phones a strip stays uncovered, to tap out); anything marked `.drawer-rise` inside then
  * rises from its mask, staggered. Escape, the backdrop or CLOSE shut it.
  * Used by the bag and the size guide.
  */
@@ -95,12 +95,12 @@ export default function Drawer({
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="drawer-panel absolute inset-y-0 right-0 flex w-full max-w-[460px] flex-col bg-ivory px-pad pb-pad pt-[20px]"
+        className="drawer-panel absolute inset-y-0 right-0 flex w-[calc(100%-48px)] max-w-[460px] flex-col bg-ivory px-pad pb-pad pt-[20px]"
       >
         <div className="flex items-center justify-between">
           <p className="ui-label">{title}</p>
           <button ref={closeBtn} type="button" className="nav-link ui-label relative" onClick={onClose}>
-            Close
+            Close <span aria-hidden="true">✕</span>
           </button>
         </div>
         <div className="mt-10 flex-1 overflow-y-auto" data-lenis-prevent>

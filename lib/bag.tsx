@@ -10,14 +10,17 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
    ────────────────────────────────────────────────────────────── */
 
 export type BagItem = { slug: string; size: string; colour: string; qty: number };
-type State = { items: BagItem[]; open: boolean; ready: boolean };
+/** "added": the drawer shows just the item that was added; "bag": everything. */
+export type BagView = "bag" | "added";
+type State = { items: BagItem[]; open: boolean; ready: boolean; view: BagView; lastKey: string | null };
 type Action =
   | { type: "load"; items: BagItem[] }
   | { type: "add"; item: BagItem }
   | { type: "qty"; key: string; qty: number }
   | { type: "remove"; key: string }
   | { type: "clear" }
-  | { type: "open"; open: boolean };
+  | { type: "open"; open: boolean; view?: BagView }
+  | { type: "view"; view: BagView };
 
 const KEY = "seve:bag";
 export const itemKey = (i: Pick<BagItem, "slug" | "size" | "colour">) => `${i.slug}|${i.size}|${i.colour}`;
@@ -32,7 +35,7 @@ function reducer(state: State, a: Action): State {
       const items = found
         ? state.items.map((i) => (itemKey(i) === k ? { ...i, qty: i.qty + a.item.qty } : i))
         : [...state.items, a.item];
-      return { ...state, items };
+      return { ...state, items, lastKey: k };
     }
     case "qty":
       return { ...state, items: state.items.map((i) => (itemKey(i) === a.key ? { ...i, qty: Math.max(1, a.qty) } : i)) };
@@ -41,7 +44,9 @@ function reducer(state: State, a: Action): State {
     case "clear":
       return { ...state, items: [] };
     case "open":
-      return { ...state, open: a.open };
+      return { ...state, open: a.open, view: a.view ?? state.view };
+    case "view":
+      return { ...state, view: a.view };
   }
 }
 
@@ -50,19 +55,25 @@ type BagContextValue = {
   /** False until the saved bag has been read from this browser. */
   ready: boolean;
   open: boolean;
+  view: BagView;
+  /** The line most recently added to. */
+  lastKey: string | null;
   count: number;
-  add: (item: BagItem) => void;
+  /** Add (same product, size and colour → quantity goes up). `reveal` opens the drawer on it. */
+  add: (item: BagItem, options?: { reveal?: boolean }) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
   openBag: () => void;
+  /** In the drawer: from "just added" to the whole bag. */
+  showWholeBag: () => void;
   closeBag: () => void;
 };
 
 const BagContext = createContext<BagContextValue | null>(null);
 
 export function BagProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { items: [], open: false, ready: false });
+  const [state, dispatch] = useReducer(reducer, { items: [], open: false, ready: false, view: "bag", lastKey: null });
 
   // Load the saved bag once we're in the browser…
   useEffect(() => {
@@ -86,11 +97,15 @@ export function BagProvider({ children }: { children: ReactNode }) {
     }
   }, [state.items, state.ready]);
 
-  const add = useCallback((item: BagItem) => dispatch({ type: "add", item }), []);
+  const add = useCallback((item: BagItem, options?: { reveal?: boolean }) => {
+    dispatch({ type: "add", item });
+    if (options?.reveal) dispatch({ type: "open", open: true, view: "added" });
+  }, []);
   const setQty = useCallback((key: string, qty: number) => dispatch({ type: "qty", key, qty }), []);
   const remove = useCallback((key: string) => dispatch({ type: "remove", key }), []);
   const clear = useCallback(() => dispatch({ type: "clear" }), []);
-  const openBag = useCallback(() => dispatch({ type: "open", open: true }), []);
+  const openBag = useCallback(() => dispatch({ type: "open", open: true, view: "bag" }), []);
+  const showWholeBag = useCallback(() => dispatch({ type: "view", view: "bag" }), []);
   const closeBag = useCallback(() => dispatch({ type: "open", open: false }), []);
 
   const value = useMemo(
@@ -98,15 +113,18 @@ export function BagProvider({ children }: { children: ReactNode }) {
       items: state.items,
       ready: state.ready,
       open: state.open,
+      view: state.view,
+      lastKey: state.lastKey,
       count: state.items.reduce((n, i) => n + i.qty, 0),
       add,
       setQty,
       remove,
       clear,
       openBag,
+      showWholeBag,
       closeBag,
     }),
-    [state.items, state.ready, state.open, add, setQty, remove, clear, openBag, closeBag],
+    [state.items, state.ready, state.open, state.view, state.lastKey, add, setQty, remove, clear, openBag, showWholeBag, closeBag],
   );
 
   return <BagContext.Provider value={value}>{children}</BagContext.Provider>;

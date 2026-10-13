@@ -8,6 +8,7 @@ import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
 import { getIntro, setIntro } from "@/lib/intro";
 import { getProduct } from "@/lib/products";
 import { registerNavigator, setTransition } from "@/lib/transition";
+import { canFly, purgeTransitionLayers, takeOff, type Flight } from "@/lib/shared-transition";
 import StairReveal, { type StairRevealHandle } from "./StairReveal";
 import { NAV_OFFSET, useLenis } from "./SmoothScroll";
 
@@ -17,14 +18,22 @@ import { NAV_OFFSET, useLenis } from "./SmoothScroll";
      columns (default): six ink columns rise from the bottom, left →
        right, to cover the screen; the new page's name shows small and
        centred in ivory; the page changes; the columns retract upward.
-       ≈1.2s plus however long the new page takes to arrive.
      shared (product cards, [data-transition="shared"]): the card's image
        lifts off and expands into the product page's main image
        ([data-shared-target]) while the rest of the page cross-fades.
+       The flight itself lives in lib/shared-transition.ts. If the card
+       isn't fully on screen (or its image hasn't loaded), the columns
+       play instead.
+
+   Every navigation gets a run number. Starting a new one (another click
+   mid-transition) cancels the old one: its animations are killed and its
+   layers deleted; the abandoned steps check their run number and stop.
+   Route changes we didn't start (the browser's back/forward buttons)
+   also cancel whatever is in flight. And on every route change, any
+   leftover transition layer is removed before the new page shows.
    ────────────────────────────────────────────────────────────── */
 
 const COLUMNS = { duration: 0.45, stagger: 0.03 }; // ≈0.6s each way
-const SHARED_MOVE = 1.1;
 
 const titleCase = (s: string) => s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -39,6 +48,17 @@ function labelFor(url: URL, link: HTMLAnchorElement | null) {
   return titleCase(first);
 }
 
+/**
+ * Leaving the home page before its intro has finished (mid-entrance, or
+ * while the hero holds): the next page uses the settled layout, and
+ * scrolling must unlock there. Without this, leaving mid-entrance left the
+ * intro unfinished and the next page's scroll locked.
+ */
+function leaveIntro() {
+  const { phase } = getIntro();
+  if (phase === "revealing" || phase === "done" || phase === "settling") setIntro({ phase: "settled" });
+}
+
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 const play = (anim: gsap.core.Animation) => new Promise<void>((r) => anim.eventCallback("onComplete", () => r()));
 
@@ -51,21 +71,48 @@ export default function PageTransition() {
   const stair = useRef<StairRevealHandle>(null);
   const label = useRef<HTMLSpanElement>(null);
   const [labelText, setLabelText] = useState("");
-  const veil = useRef<HTMLDivElement>(null);
-  const clone = useRef<HTMLDivElement>(null);
-  const cloneImg = useRef<HTMLImageElement>(null);
-  const busy = useRef(false);
+  /** The current navigation's number; 0 = none in progress. */
+  const active = useRef(0);
+  const counter = useRef(0);
+  /** Everything the current navigation has running, so it can be stopped at once. */
+  const running = useRef<{ anims: gsap.core.Animation[]; flight: Flight | null }>({ anims: [], flight: null });
   const arrived = useRef<((path: string) => void) | null>(null);
+  const cancelRef = useRef<() => void>(() => {});
 
   useEffect(() => setMounted(true), []);
 
-  // Resolve a pending navigation once the new page has rendered.
+  // Every route change: resolve our pending navigation, or — if we didn't
+  // start it (back/forward) — cancel whatever is in flight. Then sweep up
+  // any transition layer that doesn't belong to a live navigation.
   useEffect(() => {
-    arrived.current?.(pathname);
+    const pending = arrived.current;
+    if (pending) pending(pathname);
+    // Not ours (back/forward): stop anything in flight and put the page at rest.
+    else cancelRef.current();
+    purgeTransitionLayers(active.current || undefined);
   }, [pathname]);
 
   useEffect(() => {
     if (!lenis) return;
+
+    /** Stop the current navigation now and put everything back to rest. */
+    const cancel = () => {
+      const r = running.current;
+      r.anims.forEach((a) => a.kill());
+      r.flight?.cancel();
+      running.current = { anims: [], flight: null };
+      active.current = 0;
+      arrived.current = null;
+      purgeTransitionLayers();
+      gsap.set(layer.current, { visibility: "hidden" });
+      setTransition({ phase: "idle" });
+      leaveIntro();
+      if (getIntro().phase === "settled") lenis.start();
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+    };
+    cancelRef.current = cancel;
+
+    const track = <T extends gsap.core.Animation>(a: T) => (running.current.anims.push(a), a);
 
     const goTo = (url: URL) =>
       new Promise<void>((resolve) => {
@@ -91,19 +138,22 @@ export default function PageTransition() {
       await nextFrame();
     };
 
-    const finish = () => {
+    const finish = (run: number) => {
+      if (active.current !== run) return;
+      active.current = 0;
+      running.current = { anims: [], flight: null };
       setTransition({ phase: "idle" });
-      busy.current = false;
       if (getIntro().phase === "settled") lenis.start();
     };
 
     // ── Columns ──
-    const columns = async (url: URL, text: string) => {
+    const columns = async (run: number, url: URL, text: string) => {
+      const alive = () => active.current === run;
       const reduced = prefersReducedMotion();
       setTransition({ phase: "covering", kind: "columns" });
       setLabelText(text);
       gsap.set(layer.current, { visibility: "visible" });
-      const cover = gsap.timeline();
+      const cover = track(gsap.timeline());
       const up = stair.current?.build("cover", COLUMNS);
       if (up) cover.add(up, 0);
       cover.fromTo(
@@ -113,68 +163,50 @@ export default function PageTransition() {
         reduced ? ">" : ">-0.15",
       );
       await play(cover);
+      if (!alive()) return;
 
       setTransition({ phase: "swapping" });
-      // Leaving the holding hero: the next page uses the settled layout.
-      if (getIntro().phase === "done") setIntro({ phase: "settled" });
+      leaveIntro();
       await goTo(url);
+      if (!alive()) return;
       await settleScroll(url);
+      if (!alive()) return;
 
       setTransition({ phase: "revealing" });
-      const reveal = gsap.timeline();
+      const reveal = track(gsap.timeline());
       reveal.to(label.current, reduced ? { autoAlpha: 0, duration: DURATION.reduced / 2 } : { yPercent: -100, duration: 0.35, ease: EASE.text });
       const away = stair.current?.build("uncover", COLUMNS);
       if (away) reveal.add(away, reduced ? ">" : ">-0.1");
       reveal.set(layer.current, { visibility: "hidden" });
       await play(reveal);
-      finish();
+      finish(run);
     };
 
     // ── Shared element: card image → product main image ──
-    const shared = async (url: URL, source: HTMLElement) => {
-      const reduced = prefersReducedMotion();
-      const from = source.getBoundingClientRect();
-      const sourceImg = source.querySelector("img");
-      const src = sourceImg?.currentSrc ?? "";
+    const shared = async (run: number, url: URL, source: HTMLElement) => {
+      const alive = () => active.current === run;
+      const flight = takeOff(source, run, prefersReducedMotion());
+      running.current.flight = flight;
       setTransition({ phase: "covering", kind: "shared" });
-
-      if (cloneImg.current) {
-        cloneImg.current.src = src;
-        cloneImg.current.style.visibility = src ? "visible" : "hidden";
-        // Match the source exactly (e.g. greyscale placeholders).
-        cloneImg.current.style.filter = sourceImg ? getComputedStyle(sourceImg).filter : "";
-      }
-      gsap.set(clone.current, { visibility: "visible", left: from.left, top: from.top, width: from.width, height: from.height });
-      await play(gsap.fromTo(veil.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: reduced ? DURATION.reduced : 0.4, ease: EASE.text }));
+      await flight.cover();
+      if (!alive()) return;
 
       setTransition({ phase: "swapping" });
-      if (getIntro().phase === "done") setIntro({ phase: "settled" });
+      leaveIntro();
       await goTo(url);
+      if (!alive()) return;
       await settleScroll(url);
+      if (!alive()) return;
 
-      // The visible one (the desktop gallery and the phone carousel both mark one).
-      const target = Array.from(document.querySelectorAll<HTMLElement>("[data-shared-target]")).find(
-        (el) => el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0,
-      );
-      const to = target?.getBoundingClientRect();
+      // The visible target (the desktop viewer and the phone carousel both mark one).
+      const target =
+        Array.from(document.querySelectorAll<HTMLElement>("[data-shared-target]")).find(
+          (el) => el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0,
+        ) ?? null;
       setTransition({ phase: "revealing" });
-      const tl = gsap.timeline();
-      if (to) {
-        tl.to(clone.current, {
-          left: to.left,
-          top: to.top,
-          width: to.width,
-          height: to.height,
-          duration: reduced ? 0 : SHARED_MOVE,
-          ease: EASE.big,
-        });
-      }
-      tl.to(veil.current, { autoAlpha: 0, duration: reduced ? DURATION.reduced : 0.7, ease: EASE.text }, reduced ? 0 : 0.35);
-      await play(tl);
-      // The real image is in place underneath: hand over and tidy up.
-      finish();
-      await nextFrame();
-      gsap.set(clone.current, { visibility: "hidden" });
+      // Hand-over: going idle un-hides the real image under the copy.
+      await flight.land(target, () => alive() && setTransition({ phase: "idle" }));
+      finish(run);
     };
 
     const onClick = (e: MouseEvent) => {
@@ -189,14 +221,18 @@ export default function PageTransition() {
     };
 
     function start(url: URL, link: HTMLAnchorElement | null) {
-      if (busy.current) return;
-      busy.current = true;
+      // Another navigation is mid-way: stop it cleanly, then use the columns.
+      const interrupted = active.current !== 0;
+      if (interrupted) cancel();
+      const run = ++counter.current;
+      active.current = run;
       lenis!.stop();
       const source = link?.dataset.transition === "shared" ? link.querySelector<HTMLElement>("[data-shared-source]") : null;
-      (source ? shared(url, source) : columns(url, labelFor(url, link))).catch(() => {
+      const flies = !interrupted && canFly(source);
+      (flies ? shared(run, url, source) : columns(run, url, labelFor(url, link))).catch(() => {
         // Never leave the screen covered: fall back to a plain navigation.
-        busy.current = false;
-        setTransition({ phase: "idle" });
+        if (active.current !== run) return;
+        cancel();
         window.location.href = url.href;
       });
     }
@@ -210,32 +246,24 @@ export default function PageTransition() {
     return () => {
       document.removeEventListener("click", onClick, { capture: true });
       unregister();
+      if (active.current) cancel();
     };
   }, [lenis, router]);
 
   if (!mounted) return null;
 
   return createPortal(
-    <>
-      {/* Columns + page name */}
-      <div ref={layer} className="page-transition pointer-events-none fixed inset-0 z-[1300]" aria-hidden="true">
-        <StairReveal ref={stair} direction="up" columns={6} mobileColumns={4} color="var(--ink)" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="mask">
-            <span ref={label} className="ui-label block text-ivory">
-              {labelText}
-            </span>
+    // Columns + page name. (The shared-element layers are created per flight by lib/shared-transition.ts.)
+    <div ref={layer} className="page-transition pointer-events-none fixed inset-0 z-[1300]" aria-hidden="true">
+      <StairReveal ref={stair} direction="up" columns={6} mobileColumns={4} color="var(--ink)" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="mask">
+          <span ref={label} className="ui-label block text-ivory">
+            {labelText}
           </span>
-        </div>
+        </span>
       </div>
-
-      {/* Shared-element transition: an ivory veil over the page, and the card image on top */}
-      <div ref={veil} className="page-veil pointer-events-none fixed inset-0 z-[1290] bg-ivory" aria-hidden="true" />
-      <div ref={clone} className="page-clone pointer-events-none fixed z-[1300] overflow-hidden bg-loader-grey" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={cloneImg} alt="Product image, enlarging" className="h-full w-full object-cover" />
-      </div>
-    </>,
+    </div>,
     document.body,
   );
 }

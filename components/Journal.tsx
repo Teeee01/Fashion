@@ -36,7 +36,7 @@ export default function Journal() {
       ScrollTrigger.batch(rows, {
         start: "top 92%",
         once: true,
-        onEnter: (batch) => {
+        onEnter: (batch) => ctx.add(() => {
           const inner = batch.map((r) => r.querySelector(".journal-rise"));
           const rules = batch.map((r) => r.querySelector(".journal-rule"));
           if (reduced) {
@@ -49,7 +49,7 @@ export default function Journal() {
             { y: 0, yPercent: 100 },
             { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines, delay: 0.1 },
           );
-        },
+        }),
       });
     }, section);
     return () => ctx.revert();
