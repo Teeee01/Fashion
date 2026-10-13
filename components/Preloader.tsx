@@ -21,6 +21,11 @@ import StairReveal, { type StairPlayOptions, type StairRevealHandle } from "./St
    crawl to 98 (≈1.6s). The last 98 → 100 only plays once every asset is
    ready, making ≈1.8s in total. */
 
+/* The brand name sits in the middle while the count runs: its letters rise
+   in one by one, and the moment loading is done it travels up and away, as
+   if the page were scrolling, while the white columns rise over it. */
+const BRAND = "Maison Sève";
+
 const HOLD_AT_100 = 0.25;
 const EMPTY_PAUSE = 0.35;
 
@@ -46,6 +51,7 @@ const ENTRANCE_SPEED: Record<IntroMode, number> = { full: 1, quick: 2, reduced: 
 export default function Preloader() {
   const overlay = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
+  const brand = useRef<HTMLParagraphElement>(null);
   const stair = useRef<StairRevealHandle>(null);
   const [mounted, setMounted] = useState(true);
   const { phase } = useIntro();
@@ -91,6 +97,14 @@ export default function Preloader() {
       const columns = stair.current?.build("cover", STAIR_TIMING[mode]);
       if (columns) master.add(columns, 0);
       const columnsDone = master.duration();
+      // The name scrolls up and out with the page as the columns rise.
+      if (mode === "reduced") master.to(brand.current, { autoAlpha: 0, duration: 0.3, ease: "none" }, 0);
+      else
+        master.to(
+          brand.current,
+          { y: () => -window.innerHeight * 0.55, duration: mode === "full" ? 1.1 : 0.6, ease: EASE.big },
+          0,
+        );
 
       const entrance = buildIntroTimeline(mode);
 
@@ -178,6 +192,23 @@ export default function Preloader() {
       aria-hidden="true"
       className="preloader fixed inset-0 z-[1000] bg-loader-grey"
     >
+      {/* Centred by the flex wrapper, so GSAP can move the name freely. */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <p
+          ref={brand}
+          className="preloader-brand font-display text-[clamp(44px,6vw,96px)] leading-none tracking-[-0.01em] text-ink"
+        >
+          <span className="inline-flex overflow-hidden pb-[0.12em]">
+            {/* The letters rise by CSS (globals.css), so they start the moment
+                the page paints instead of waiting for the scripts to load. */}
+            {Array.from(BRAND).map((ch, i) => (
+              <span key={i} className="preloader-letter inline-block whitespace-pre" style={{ "--i": i } as React.CSSProperties}>
+                {ch}
+              </span>
+            ))}
+          </span>
+        </p>
+      </div>
       <span
         ref={counter}
         className="preloader-count absolute left-[12vw] top-[55vh] font-sans text-[12px] leading-none text-loader-ink tabular-nums"

@@ -163,6 +163,30 @@ html[data-intro-seen] .preloader-count {
   display: none;
 }
 
+/* The brand name in the middle of the loading screen. On a first visit
+   its letters rise from their mask one by one (0.04s apart, power3.out),
+   straight from first paint. Return visits and reduced motion show it
+   still. Leaving is handled by the Preloader (it travels up with the page). */
+@keyframes preloader-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+html:not([data-intro-seen]) .preloader-letter {
+  animation: preloader-rise 0.9s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  animation-delay: calc(0.15s + var(--i) * 0.04s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html .preloader-letter {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .preloader-count {
     display: none;
