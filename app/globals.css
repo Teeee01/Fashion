@@ -276,3 +276,57 @@ html[data-intro-seen] .preloader-count {
 .mobile-menu {
   visibility: hidden;
 }
+
+/* ── New collection ───────────────────────────────────────────────
+   Look cards: 28vw wide on desktop (smaller on short screens so a whole
+   card always fits), 2vw apart; a swipeable snapping row on mobile. */
+.collection-intro {
+  width: 40vw;
+}
+
+.look {
+  width: min(28vw, calc((100svh - 260px) * 0.75));
+}
+
+/* Hover: the photo slowly leans in. */
+.look-zoom {
+  transition: transform 1.2s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.look:hover .look-zoom {
+  transform: scale(1.04);
+}
+
+/* Hidden until revealed by scroll. */
+.js .look-media {
+  clip-path: inset(100% 0 0 0);
+}
+
+.js .look-cap-line {
+  transform: translateY(100%);
+}
+
+@media (max-width: 767px) {
+  .look-row {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--pad-x);
+    padding-inline: var(--pad-x);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: 12px;
+  }
+
+  .look-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .collection-intro {
+    width: auto;
+  }
+
+  .look {
+    width: 78vw;
+    scroll-snap-align: start;
+  }
+}

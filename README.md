@@ -35,6 +35,8 @@ After that, any time you want to see the site:
 | Mobile menu | `components/MobileMenu.tsx` |
 | Custom cursor | `components/Cursor.tsx` |
 | Manifesto section (01 — The House) | `components/Manifesto.tsx` |
+| New collection section (02) | `components/collection/Collection.tsx` |
+| **Collection looks: names and photos** | `lib/collection.ts` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
@@ -42,9 +44,12 @@ After that, any time you want to see the site:
 
 ## Replacing placeholder photos
 
-Until the real photography is ready, sections use placeholder editorial images. To swap one in, drop your
-photo (JPG or WebP, ideally at least 2000px on the long side) into `public/images/`, then tell Claude
-which file goes where.
+Until the real photography is ready, sections use placeholder editorial images from Unsplash, shown in
+black and white. To swap one in, drop your photo (JPG or WebP, ideally at least 2000px on the long side)
+into `public/images/`, then tell Claude which file goes where. For the collection, each look's photo and
+name live in `lib/collection.ts`: changing a look's `src` to e.g. `"/images/look-01.jpg"` is all it takes.
+Your own photos are shown in their original colour. If a photo can't be loaded, a grey panel with the
+look number appears instead of a broken image.
 
 ## Notes
 
