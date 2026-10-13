@@ -2,6 +2,7 @@
 
 
 import { useSyncExternalStore } from "react";
+import type gsap from "gsap";
 import { INTRO_SEEN_KEY } from "./intro-key";
 
 /* ──────────────────────────────────────────────────────────────
@@ -35,6 +36,26 @@ function subscribe(listener: () => void) {
 }
 
 const getState = () => state;
+
+/* ── Page entrance timelines ─────────────────────────────────────
+   A page (e.g. the hero) registers a builder for its entrance. The
+   preloader calls it when the staircase starts and nests the result in
+   its own timeline, so the whole intro runs as one GSAP timeline.
+   Times inside the entrance are relative to its own start. */
+export type IntroBuilder = (mode: IntroMode) => gsap.core.Timeline;
+
+let introBuilder: IntroBuilder | null = null;
+
+export function registerIntroTimeline(builder: IntroBuilder) {
+  introBuilder = builder;
+  return () => {
+    if (introBuilder === builder) introBuilder = null;
+  };
+}
+
+export function buildIntroTimeline(mode: IntroMode) {
+  return introBuilder?.(mode) ?? null;
+}
 const getServerState = (): IntroState => ({ phase: "loading", mode: "full" });
 
 export function useIntro() {

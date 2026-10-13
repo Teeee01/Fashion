@@ -4,7 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { EASE, prefersReducedMotion } from "@/lib/motion";
 import { waitForAssets } from "@/lib/loading";
-import { hasSeenIntro, markIntroSeen, setIntro, useIntro, type IntroMode } from "@/lib/intro";
+import {
+  buildIntroTimeline,
+  hasSeenIntro,
+  markIntroSeen,
+  setIntro,
+  useIntro,
+  type IntroMode,
+} from "@/lib/intro";
 import { useLenis } from "./SmoothScroll";
 import StairReveal, { type StairPlayOptions, type StairRevealHandle } from "./StairReveal";
 
@@ -34,6 +41,14 @@ const STAIR_TIMING: Record<IntroMode, StairPlayOptions> = {
   quick: { duration: 0.45, stagger: 0.03 },
   reduced: {},
 };
+
+/**
+ * When the page entrance (hero) starts, measured from the first column moving.
+ * Full: 0.4s into the staircase. Quick: the entrance plays at double speed, so
+ * everything lands in step with the 0.6s staircase. Reduced: after the fade.
+ */
+const ENTRANCE_AT: Record<IntroMode, number | "after"> = { full: 0.4, quick: 0.2, reduced: "after" };
+const ENTRANCE_SPEED: Record<IntroMode, number> = { full: 1, quick: 2, reduced: 1 };
 
 export default function Preloader() {
   const overlay = useRef<HTMLDivElement>(null);
@@ -72,18 +87,40 @@ export default function Preloader() {
       if (counter.current) counter.current.textContent = `${Math.round(value.n)}%`;
     };
 
-    // White columns rise over the grey; once they're all full, the overlay
-    // and columns are removed together, leaving the page white underneath.
+    // One timeline for the whole intro: white columns rise over the grey,
+    // the page entrance starts while they're still rising, and the moment
+    // the last column is full the overlay and columns are removed together,
+    // leaving the page white underneath.
     const exit = async () => {
       if (cancelled) return;
-      await stair.current?.cover(STAIR_TIMING[mode]);
+      const master = gsap.timeline();
+      const columns = stair.current?.build("cover", STAIR_TIMING[mode]);
+      if (columns) master.add(columns, 0);
+      const columnsDone = master.duration();
+
+      master.call(
+        () => {
+          markIntroSeen();
+          const html = document.documentElement;
+          html.classList.add("is-intro-white");
+          html.classList.remove("is-preloading");
+          setMounted(false);
+          setIntro({ phase: "revealing" });
+        },
+        undefined,
+        columnsDone,
+      );
+
+      const entrance = buildIntroTimeline(mode);
+      if (entrance) {
+        entrance.timeScale(ENTRANCE_SPEED[mode]);
+        const at = ENTRANCE_AT[mode];
+        master.add(entrance, at === "after" ? columnsDone : at);
+      }
+
+      await play(master);
       if (cancelled) return;
-      markIntroSeen();
-      const html = document.documentElement;
-      html.classList.add("is-intro-white");
-      html.classList.remove("is-preloading");
-      setMounted(false);
-      setIntro({ phase: "revealing" });
+      setIntro({ phase: "done" });
     };
 
     (async () => {

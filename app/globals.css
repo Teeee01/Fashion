@@ -181,3 +181,50 @@ html[data-intro-seen] .preloader-count {
 .stair-col + .stair-col {
   margin-left: -1px;
 }
+
+/* ── Hero ─────────────────────────────────────────────────────────
+   The hero's foreground (monogram, captions) sits just above the
+   preloader layer so it can animate in while the columns are rising.
+   Before GSAP takes over, everything starts in its hidden state. */
+.hero-fg {
+  z-index: 1001;
+}
+
+.monogram-path {
+  fill: var(--ink);
+  stroke-dasharray: 1;
+}
+
+.js .monogram-path {
+  fill: transparent;
+  stroke-dashoffset: 1;
+}
+
+.js .nav-link {
+  opacity: 0;
+}
+
+.js .hero-line {
+  transform: translateY(100%);
+}
+
+.js .hero-ribbon {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Video fallback: a portrait clip of the ribbon, centred where the 3D one sits. */
+.ribbon-video {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  left: calc(22vw - 25svh);
+}
+
+@media (max-width: 767px) {
+  .ribbon-video {
+    left: calc(34vw - 25svh);
+  }
+}

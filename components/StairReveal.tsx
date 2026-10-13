@@ -44,6 +44,8 @@ export type StairRevealProps = {
 export type StairPlayOptions = { duration?: number; stagger?: number };
 
 export type StairRevealHandle = {
+  /** Build the animation without playing it, to place inside a parent timeline. */
+  build: (action: StairAction, options?: StairPlayOptions) => gsap.core.Animation | null;
   /** Columns grow to full height. Resolves when the last column is full. */
   cover: (options?: StairPlayOptions) => Promise<void>;
   /** Columns shrink away, continuing in the same direction. */
@@ -78,46 +80,50 @@ const StairReveal = forwardRef<StairRevealHandle, StairRevealProps>(function Sta
     return anchorBottom ? "50% 100%" : "50% 0%";
   };
 
+  const build = (action: StairAction, options: StairPlayOptions = {}, onDone?: () => void) => {
+    const el = root.current;
+    if (!el) return null;
+    // Only the columns visible at this screen size take part.
+    const cols = Array.from(el.children as HTMLCollectionOf<HTMLElement>).filter(
+      (c) => getComputedStyle(c).display !== "none",
+    );
+    const done = () => {
+      onComplete?.(action);
+      onDone?.();
+    };
+
+    if (prefersReducedMotion()) {
+      gsap.set(cols, { scaleY: 1 });
+      return gsap.fromTo(
+        el,
+        { autoAlpha: action === "cover" ? 0 : 1 },
+        { autoAlpha: action === "cover" ? 1 : 0, duration: DURATION.reduced, ease: "none", onComplete: done },
+      );
+    }
+
+    gsap.set(el, { autoAlpha: 1 });
+    return gsap.fromTo(
+      cols,
+      { scaleY: action === "cover" ? 0 : 1, transformOrigin: origin(action) },
+      {
+        scaleY: action === "cover" ? 1 : 0,
+        duration: options.duration ?? duration,
+        stagger: options.stagger ?? stagger,
+        ease: EASE.big,
+        onComplete: done,
+      },
+    );
+  };
+
   const run = (action: StairAction, options: StairPlayOptions = {}) =>
     new Promise<void>((resolve) => {
-      const el = root.current;
-      if (!el) return resolve();
-      // Only the columns visible at this screen size take part.
-      const cols = Array.from(el.children as HTMLCollectionOf<HTMLElement>).filter(
-        (c) => getComputedStyle(c).display !== "none",
-      );
       active.current?.kill();
-
-      const done = () => {
-        onComplete?.(action);
-        resolve();
-      };
-
-      if (prefersReducedMotion()) {
-        gsap.set(cols, { scaleY: 1 });
-        active.current = gsap.fromTo(
-          el,
-          { autoAlpha: action === "cover" ? 0 : 1 },
-          { autoAlpha: action === "cover" ? 1 : 0, duration: DURATION.reduced, ease: "none", onComplete: done },
-        );
-        return;
-      }
-
-      gsap.set(el, { autoAlpha: 1 });
-      active.current = gsap.fromTo(
-        cols,
-        { scaleY: action === "cover" ? 0 : 1, transformOrigin: origin(action) },
-        {
-          scaleY: action === "cover" ? 1 : 0,
-          duration: options.duration ?? duration,
-          stagger: options.stagger ?? stagger,
-          ease: EASE.big,
-          onComplete: done,
-        },
-      );
+      active.current = build(action, options, resolve);
+      if (!active.current) resolve();
     });
 
   useImperativeHandle(ref, () => ({
+    build: (action, o) => build(action, o),
     cover: (o) => run("cover", o),
     uncover: (o) => run("uncover", o),
   }));
