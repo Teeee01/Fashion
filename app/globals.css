@@ -406,3 +406,20 @@ html[data-intro-seen] .preloader-count {
 .js .pattern-line {
   stroke-dashoffset: 1;
 }
+
+/* ── Campaign film ────────────────────────────────────────────────
+   The window starts closed until GSAP frames it; the play button and
+   the full-screen player stay hidden until needed. The button inverts
+   against the footage (difference blend) so it reads on light or dark. */
+.js .film-media {
+  clip-path: inset(38% 30% 38% 30%);
+}
+
+.film-play {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.film-player {
+  visibility: hidden;
+}

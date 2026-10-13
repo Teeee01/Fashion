@@ -13,13 +13,14 @@ import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
      link    → dot at half size (any <a>, <button> or [data-cursor="link"])
      view    → 72px disc with "VIEW" (any <img> or [data-cursor="view"])
      drag    → 72px disc with "DRAG" ([data-cursor="drag"])
+     play    → 72px disc with "PLAY" ([data-cursor="play"])
      none    → hidden ([data-cursor="none"])
 
    The disc is drawn at its full 72px and scaled down for the dot, so the
    label is never stretched when it grows.
    ────────────────────────────────────────────────────────────── */
 
-type CursorState = "default" | "link" | "view" | "drag" | "none";
+type CursorState = "default" | "link" | "view" | "drag" | "play" | "none";
 
 const FULL = 72;
 const DOT = 10;
@@ -28,9 +29,10 @@ const SCALE: Record<CursorState, number> = {
   link: (DOT / FULL) * 0.5,
   view: 1,
   drag: 1,
+  play: 1,
   none: 0,
 };
-const LABEL: Partial<Record<CursorState, string>> = { view: "View", drag: "Drag" };
+const LABEL: Partial<Record<CursorState, string>> = { view: "View", drag: "Drag", play: "Play" };
 
 function stateFor(target: EventTarget | null): CursorState {
   if (!(target instanceof Element)) return "default";

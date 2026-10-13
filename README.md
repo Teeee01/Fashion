@@ -43,6 +43,8 @@ After that, any time you want to see the site:
 | Atelier section (photo, text, pattern, stats) | `components/Atelier.tsx` |
 | **Atelier stats and text: put your real numbers here** | `lib/atelier.ts` |
 | Section divider (hairline that draws itself) | `components/Hairline.tsx` |
+| Campaign film section and full-screen player | `components/CampaignFilm.tsx` |
+| **Campaign film (replace with yours)** | `public/campaign.mp4`, `public/campaign.webm`, `public/campaign-poster.jpg` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |

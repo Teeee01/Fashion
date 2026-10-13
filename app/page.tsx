@@ -4,6 +4,7 @@ import Collection from "@/components/collection/Collection";
 import Lookbook from "@/components/Lookbook";
 import SignatureCoat from "@/components/SignatureCoat";
 import Atelier from "@/components/Atelier";
+import CampaignFilm from "@/components/CampaignFilm";
 import Hairline from "@/components/Hairline";
 
 export default function Home() {
@@ -20,6 +21,8 @@ export default function Home() {
       <SignatureCoat />
       <Hairline />
       <Atelier />
+      <Hairline />
+      <CampaignFilm />
     </main>
   );
 }
