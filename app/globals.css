@@ -10,6 +10,7 @@
   --ivory: #f2f1ee;
   --white: #ffffff;
   --loader-grey: #e6e6e4;
+  --loader-ink: #3a3a3a; /* preloader counter only */
   --ink: #0e0e0e;
   --stone: #8a8986;
   --hairline: rgba(14, 14, 14, 0.12);
@@ -29,6 +30,7 @@
   --color-ivory: var(--ivory);
   --color-white: var(--white);
   --color-loader-grey: var(--loader-grey);
+  --color-loader-ink: var(--loader-ink);
   --color-ink: var(--ink);
   --color-stone: var(--stone);
   --color-hairline: var(--hairline);
@@ -134,6 +136,24 @@ body {
 /* Elements animated in by GSAP start hidden to avoid a flash before JS runs. */
 .js [data-reveal] {
   visibility: hidden;
+}
+
+/* ── Preloader ─────────────────────────────────────────────────
+   No native scrolling while it's on screen (Lenis is stopped too).
+   On a returning visit or under reduced motion the counter is hidden
+   before first paint, so it never flashes. */
+html.is-preloading {
+  overflow: hidden;
+}
+
+html[data-intro-seen] .preloader-count {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader-count {
+    display: none;
+  }
 }
 
 /* ── Reduced motion: no smooth scroll, no CSS transitions ─────── */

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { revealText } from "@/lib/motion";
+import { useIntro } from "@/lib/intro";
 
 /**
  * Home — intentionally empty for now.
@@ -10,13 +11,16 @@ import { revealText } from "@/lib/motion";
  */
 export default function Home() {
   const root = useRef<HTMLElement>(null);
+  const { phase } = useIntro();
+  const ready = phase !== "loading";
 
   useEffect(() => {
+    if (!ready) return;
     const captions = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
     if (!captions) return;
     const splits = Array.from(captions, (el, i) => revealText(el, { delay: 0.2 + i * 0.08 }));
     return () => splits.forEach((s) => s?.revert());
-  }, []);
+  }, [ready]);
 
   return (
     <main ref={root} className="relative h-svh">
