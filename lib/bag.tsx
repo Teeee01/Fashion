@@ -47,6 +47,8 @@ function reducer(state: State, a: Action): State {
 
 type BagContextValue = {
   items: BagItem[];
+  /** False until the saved bag has been read from this browser. */
+  ready: boolean;
   open: boolean;
   count: number;
   add: (item: BagItem) => void;
@@ -94,6 +96,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       items: state.items,
+      ready: state.ready,
       open: state.open,
       count: state.items.reduce((n, i) => n + i.qty, 0),
       add,
@@ -103,7 +106,7 @@ export function BagProvider({ children }: { children: ReactNode }) {
       openBag,
       closeBag,
     }),
-    [state.items, state.open, add, setQty, remove, clear, openBag, closeBag],
+    [state.items, state.ready, state.open, add, setQty, remove, clear, openBag, closeBag],
   );
 
   return <BagContext.Provider value={value}>{children}</BagContext.Provider>;

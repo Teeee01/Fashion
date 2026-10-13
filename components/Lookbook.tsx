@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLayoutEffect, useRef } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER } from "@/lib/motion";
@@ -99,7 +100,15 @@ export default function Lookbook() {
   return (
     <section ref={section} id="lookbook" aria-labelledby="lookbook-title" className="lookbook relative">
       {/* Full-bleed campaign */}
-      <div ref={campaign} className="relative h-svh overflow-hidden" data-cursor="view">
+      <div ref={campaign} className="relative h-svh overflow-hidden">
+        {/* The whole image opens this look's page. */}
+        <Link
+          href={`/look/${CAMPAIGN.number}`}
+          className="absolute inset-0 z-[1]"
+          data-cursor="view"
+          data-transition-label={`Look ${CAMPAIGN.number}`}
+          aria-label={`Look ${CAMPAIGN.number}: ${CAMPAIGN.title}. Shop the pieces`}
+        />
         {/* 120% tall and shifted up 10%, so ±8% parallax never shows an edge. */}
         <div ref={photo} className="absolute inset-x-0 -top-[10%] h-[120%]">
           <EditorialImage src={CAMPAIGN.src} alt={CAMPAIGN.alt} sizes="100vw" fallback="dark" />
@@ -120,12 +129,14 @@ export default function Lookbook() {
       {/* Asymmetric editorial grid */}
       <div ref={grid} className="grid-12 items-start pb-[24vh] pt-[16vh]">
         {LOOKBOOK_GRID.map((img) => (
-          <figure key={img.src} className={`lookbook-item ${img.place}`} data-speed={img.speed} data-cursor="view">
-            <div className={`lookbook-media relative overflow-hidden bg-loader-grey ${img.aspect}`}>
-              <div className="lookbook-photo absolute inset-0">
-                <EditorialImage src={img.src} alt={img.alt} sizes="(max-width: 767px) 70vw, 50vw" />
+          <figure key={img.src} className={`lookbook-item ${img.place}`} data-speed={img.speed}>
+            <Link href={`/look/${img.number}`} className="block" data-cursor="view" data-transition-label={`Look ${img.number}`}>
+              <div className={`lookbook-media relative overflow-hidden bg-loader-grey ${img.aspect}`}>
+                <div className="lookbook-photo absolute inset-0">
+                  <EditorialImage src={img.src} alt={`${img.alt}. Look ${img.number}: shop the pieces`} sizes="(max-width: 767px) 70vw, 50vw" />
+                </div>
               </div>
-            </div>
+            </Link>
           </figure>
         ))}
       </div>

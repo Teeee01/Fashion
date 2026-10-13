@@ -62,7 +62,7 @@ export default function Atelier() {
     <section ref={section} id="atelier" aria-labelledby="atelier-label" className="relative bg-ivory py-[16vh]">
       <div className="grid-12 gap-y-16">
         <div className="col-span-12 md:col-span-5">
-          <div ref={media} className="atelier-media relative aspect-[4/5] overflow-hidden bg-loader-grey" data-cursor="view">
+          <div ref={media} className="atelier-media relative aspect-[4/5] overflow-hidden bg-loader-grey">
             <div ref={photo} className="absolute inset-0">
               <EditorialImage src={ATELIER_PHOTO.src} alt={ATELIER_PHOTO.alt} sizes="(max-width: 767px) 100vw, 42vw" />
             </div>

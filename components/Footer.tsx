@@ -5,6 +5,7 @@ import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
 import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
 import { ribbonState } from "@/lib/ribbon-state";
+import { setCurrency, useCurrency, type Currency } from "@/lib/currency";
 import { useLenis } from "./SmoothScroll";
 
 /* ──────────────────────────────────────────────────────────────
@@ -25,11 +26,11 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   },
   {
     title: "Collections",
-    links: [{ label: "New collection", href: "/collections/aw26" }, { label: "Lookbook", href: "/#lookbook" }, { label: "Campaign film", href: "/#film" }, { label: "Archive" }],
+    links: [{ label: "Collections", href: "/collections" }, { label: "New collection", href: "/collections/aw26" }, { label: "Lookbook", href: "/#lookbook" }, { label: "Campaign film", href: "/#film" }],
   },
   {
     title: "Client care",
-    links: [{ label: "Contact" }, { label: "Shipping" }, { label: "Returns" }, { label: "Garment care" }],
+    links: [{ label: "Contact" }, { label: "Checkout", href: "/checkout" }, { label: "Shipping" }, { label: "Returns" }, { label: "Garment care" }],
   },
   {
     title: "Follow",
@@ -203,13 +204,29 @@ export default function Footer() {
         ))}
       </nav>
 
-      {/* Bottom row */}
-      <div className="mt-[12vh] flex items-baseline justify-between px-pad">
-        <p className="ui-label mask text-stone">
-          <span className="block" data-reveal="block">
-            © 2026 Maison Sève
-          </span>
-        </p>
+      {/* Bottom row: copyright and credit, currency, back to top */}
+      <div className="mt-[12vh] flex flex-wrap items-baseline justify-between gap-x-10 gap-y-5 px-pad">
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+          <p className="ui-label mask text-stone">
+            <span className="block" data-reveal="block">
+              © 2026 Maison Sève
+            </span>
+          </p>
+          <p className="ui-label mask text-stone">
+            <span className="block" data-reveal="block">
+              Designed by{" "}
+              <a
+                href="https://akinyemititilope.netlify.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nav-link relative inline-block text-ink"
+              >
+                Akinyemi Titilope<span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </span>
+          </p>
+        </div>
+        <CurrencySwitch />
         <span className="mask">
           <button type="button" onClick={backToTop} className="nav-link ui-label relative block" data-reveal="block">
             Back to top ↑
@@ -228,5 +245,31 @@ export default function Footer() {
         <span className="sr-only">Maison Sève</span>
       </div>
     </footer>
+  );
+}
+
+/** USD / NGN. Prices everywhere switch at once; the choice is remembered. */
+function CurrencySwitch() {
+  const { currency } = useCurrency();
+  const options: Currency[] = ["USD", "NGN"];
+  return (
+    <div className="ui-label mask flex items-baseline gap-3" role="group" aria-label="Currency">
+      <span className="flex gap-3" data-reveal="block">
+        <span className="text-stone">Currency</span>
+        {options.map((c, i) => (
+          <span key={c} className="flex gap-3">
+            {i > 0 && <span className="text-stone" aria-hidden="true">/</span>}
+            <button
+              type="button"
+              aria-pressed={currency === c}
+              onClick={() => setCurrency(c)}
+              className={`nav-link relative transition-colors duration-500 ${currency === c ? "is-active text-ink" : "text-stone hover:text-ink"}`}
+            >
+              {c}
+            </button>
+          </span>
+        ))}
+      </span>
+    </div>
   );
 }

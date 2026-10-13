@@ -313,7 +313,7 @@ function ProductRow({ label, products }: { label: string; products: Product[] })
       </div>
       <ul className="grid grid-cols-2 gap-x-gutter gap-y-12 px-pad md:grid-cols-4">
         {products.map((p) => (
-          <li key={p.slug} className="product-item" data-category={p.category}>
+          <li key={p.slug} className="product-item" data-reveal="card">
             <ProductCard product={p} sizes="(max-width: 767px) 50vw, 25vw" />
           </li>
         ))}

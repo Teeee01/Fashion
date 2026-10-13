@@ -158,27 +158,29 @@ export default function Collection() {
 
           <div ref={row} className="look-row flex gap-[2vw]">
             {LOOKS.map((look) => (
-              <article key={look.number} className="look shrink-0" data-cursor="view">
-                <div className="look-media relative aspect-[3/4] overflow-hidden bg-loader-grey">
-                  <div className="look-photo absolute inset-0">
-                    <div className="look-zoom absolute inset-0">
-                      <EditorialImage
-                        src={look.src}
-                        alt={look.alt}
-                        label={`Look ${look.number}`}
-                        sizes="(max-width: 767px) 78vw, 28vw"
-                      />
+              <article key={look.number} className="look shrink-0">
+                <Link href={`/product/${look.slug}`} className="block" data-transition="shared" data-cursor="view">
+                  <div className="look-media relative aspect-[3/4] overflow-hidden bg-loader-grey" data-shared-source>
+                    <div className="look-photo absolute inset-0">
+                      <div className="look-zoom absolute inset-0">
+                        <EditorialImage
+                          src={look.src}
+                          alt={look.alt}
+                          label={`Look ${look.number}`}
+                          sizes="(max-width: 767px) 78vw, 28vw"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="ui-label mt-3">
-                  <span className="mask">
-                    <span className="look-cap-line block text-stone">Look {look.number}</span>
-                  </span>
-                  <span className="mask">
-                    <span className="look-cap-line block">{look.name}</span>
-                  </span>
-                </div>
+                  <div className="ui-label mt-3">
+                    <span className="mask">
+                      <span className="look-cap-line block text-stone">Look {look.number}</span>
+                    </span>
+                    <span className="mask">
+                      <span className="look-cap-line block">{look.name}</span>
+                    </span>
+                  </div>
+                </Link>
               </article>
             ))}
           </div>

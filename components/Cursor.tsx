@@ -11,7 +11,9 @@ import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
    States, picked from what's under the pointer:
      default → 10px dot
      link    → dot at half size (any <a>, <button> or [data-cursor="link"])
-     view    → 72px disc with "VIEW" (any <img> or [data-cursor="view"])
+     view    → 72px disc with "VIEW" ([data-cursor="view"], only when it
+               is or sits inside a real link, so VIEW always goes somewhere)
+     zoom    → 72px disc with "ZOOM" ([data-cursor="zoom"], product images)
      drag    → 72px disc with "DRAG" ([data-cursor="drag"])
      play    → 72px disc with "PLAY" ([data-cursor="play"])
      none    → hidden ([data-cursor="none"])
@@ -20,7 +22,7 @@ import { DURATION, EASE, prefersReducedMotion } from "@/lib/motion";
    label is never stretched when it grows.
    ────────────────────────────────────────────────────────────── */
 
-type CursorState = "default" | "link" | "view" | "drag" | "play" | "none";
+type CursorState = "default" | "link" | "view" | "zoom" | "drag" | "play" | "none";
 
 const FULL = 72;
 const DOT = 10;
@@ -28,20 +30,22 @@ const SCALE: Record<CursorState, number> = {
   default: DOT / FULL,
   link: (DOT / FULL) * 0.5,
   view: 1,
+  zoom: 1,
   drag: 1,
   play: 1,
   none: 0,
 };
-const LABEL: Partial<Record<CursorState, string>> = { view: "View", drag: "Drag", play: "Play" };
+const LABEL: Partial<Record<CursorState, string>> = { view: "View", zoom: "Zoom", drag: "Drag", play: "Play" };
 
 function stateFor(target: EventTarget | null): CursorState {
   if (!(target instanceof Element)) return "default";
   const tagged = target.closest<HTMLElement>("[data-cursor]");
   if (tagged) {
     const value = tagged.dataset.cursor as CursorState;
+    // VIEW promises a destination: without a link it falls back to a plain dot.
+    if (value === "view") return tagged.closest("a[href]") || tagged.querySelector("a[href]") ? "view" : "default";
     if (value in SCALE) return value;
   }
-  if (target.closest("img")) return "view";
   if (target.closest("a, button, [role='button'], label, summary")) return "link";
   return "default";
 }
