@@ -1,7 +1,7 @@
 "use client";
 
-import { gsap } from "./gsap";
-import { DURATION, EASE } from "./motion";
+import { gsap, SplitText } from "./gsap";
+import { DURATION, EASE, STAGGER } from "./motion";
 
 /**
  * The house image reveal: the frame opens bottom → top (clip-path) while
@@ -23,4 +23,29 @@ export function clipRise(media: Element | null, photo: Element | null, reduced: 
   );
   if (photo) tl.fromTo(photo, { scale: 1.2 }, { scale: 1, duration: 1.4, ease: EASE.big }, 0);
   return tl;
+}
+
+/**
+ * The house text reveal on scroll: lines rise from their masks
+ * (yPercent 100 → 0, 0.9s, 0.08s apart) when `el` comes into view.
+ * Re-splits on resize. Returns the SplitText so the caller can revert it.
+ */
+export function riseLinesOnScroll(el: HTMLElement | null, reduced: boolean, start = "top 85%") {
+  return SplitText.create(el, {
+    type: "lines",
+    mask: "lines",
+    linesClass: "split-line",
+    autoSplit: true,
+    onSplit: (self) =>
+      gsap.fromTo(
+        self.lines,
+        reduced ? { autoAlpha: 0 } : { yPercent: 100 },
+        {
+          ...(reduced
+            ? { autoAlpha: 1, duration: DURATION.reduced, ease: "none" }
+            : { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
+          scrollTrigger: { trigger: el, start, once: true },
+        },
+      ),
+  });
 }

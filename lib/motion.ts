@@ -27,6 +27,35 @@ export const STAGGER = {
   nav: 0.07,
 } as const;
 
+/**
+ * The house count: fast at first, a hold, a jump, a creep, then a slow
+ * crawl to the end — like real loading. Used by the preloader (0 → 100%)
+ * and by any number that counts up. `to` is a fraction of the final value;
+ * the last step (the final 2%) is what the preloader holds back until
+ * everything has loaded. ≈1.8s in total.
+ */
+export const COUNT_STEPS: { to: number; duration: number; ease: string }[] = [
+  { to: 0.23, duration: 0.3, ease: "power2.out" },
+  { to: 0.23, duration: 0.22, ease: "none" }, // hold
+  { to: 0.67, duration: 0.18, ease: "power3.out" }, // jump
+  { to: 0.9, duration: 0.5, ease: "sine.out" }, // creep
+  { to: 0.98, duration: 0.4, ease: "power2.out" },
+];
+export const COUNT_FINAL_STEP = { to: 1, duration: 0.2, ease: "power2.out" };
+
+/**
+ * Count a number up to `target` on the house count curve. `onUpdate`
+ * receives the current (unrounded) value. Returns the timeline.
+ */
+export function countUp(target: number, onUpdate: (value: number) => void) {
+  const state = { v: 0 };
+  const tl = gsap.timeline({ onUpdate: () => onUpdate(state.v) });
+  for (const step of [...COUNT_STEPS, COUNT_FINAL_STEP]) {
+    tl.to(state, { v: target * step.to, duration: step.duration, ease: step.ease });
+  }
+  return tl;
+}
+
 /** Two big moves may overlap by at most this fraction of the first one. */
 export const MAX_OVERLAP = 0.3;
 

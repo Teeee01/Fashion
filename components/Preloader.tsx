@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
-import { EASE, prefersReducedMotion } from "@/lib/motion";
+import { COUNT_FINAL_STEP, COUNT_STEPS, EASE, prefersReducedMotion } from "@/lib/motion";
 import { waitForAssets } from "@/lib/loading";
 import {
   buildIntroTimeline,
@@ -15,18 +15,10 @@ import {
 import { useLenis } from "./SmoothScroll";
 import StairReveal, { type StairPlayOptions, type StairRevealHandle } from "./StairReveal";
 
-/**
- * The counter's path to 98%: fast at first, a hold at 23, a jump to 67,
- * a creep to 90, then a slow crawl to 98 (≈1.6s). The last 98 → 100
- * only plays once every asset is ready, making ≈1.8s in total.
- */
-const COUNT_STEPS: { to: number; duration: number; ease: string }[] = [
-  { to: 23, duration: 0.3, ease: "power2.out" },
-  { to: 23, duration: 0.22, ease: "none" }, // hold
-  { to: 67, duration: 0.18, ease: "power3.out" }, // jump
-  { to: 90, duration: 0.5, ease: "sine.out" }, // creep
-  { to: 98, duration: 0.4, ease: "power2.out" },
-];
+/* The counter follows the house count curve (lib/motion COUNT_STEPS):
+   fast at first, a hold at 23, a jump to 67, a creep to 90, then a slow
+   crawl to 98 (≈1.6s). The last 98 → 100 only plays once every asset is
+   ready, making ≈1.8s in total. */
 
 const HOLD_AT_100 = 0.25;
 const EMPTY_PAUSE = 0.35;
@@ -136,14 +128,14 @@ export default function Preloader() {
       // Count to 98 and wait for real loading, whichever takes longer.
       const toNinetyEight = gsap.timeline({ onUpdate: render });
       for (const step of COUNT_STEPS) {
-        toNinetyEight.to(value, { n: step.to, duration: step.duration, ease: step.ease });
+        toNinetyEight.to(value, { n: step.to * 100, duration: step.duration, ease: step.ease });
       }
       await Promise.all([play(toNinetyEight), waitForAssets()]);
       if (cancelled) return;
 
       const finish = gsap
         .timeline()
-        .to(value, { n: 100, duration: 0.2, ease: "power2.out", onUpdate: render })
+        .to(value, { n: 100, duration: COUNT_FINAL_STEP.duration, ease: COUNT_FINAL_STEP.ease, onUpdate: render })
         .to(counter.current, { opacity: 0, y: -6, duration: 0.4, ease: EASE.text }, `+=${HOLD_AT_100}`)
         .to({}, { duration: EMPTY_PAUSE }); // the empty grey screen — keep it
       await play(finish);

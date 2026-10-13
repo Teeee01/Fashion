@@ -392,3 +392,17 @@ html[data-intro-seen] .preloader-count {
 .js .coat-label-text {
   transform: translateY(100%);
 }
+
+/* ── Atelier ──────────────────────────────────────────────────────
+   Hidden until revealed by scroll. */
+.js .atelier-media {
+  clip-path: inset(100% 0 0 0);
+}
+
+.pattern-line {
+  stroke-dasharray: 1;
+}
+
+.js .pattern-line {
+  stroke-dashoffset: 1;
+}

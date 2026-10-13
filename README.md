@@ -40,6 +40,9 @@ After that, any time you want to see the site:
 | Lookbook section (campaign + editorial grid) | `components/Lookbook.tsx` |
 | **Lookbook photos** | `lib/lookbook.ts` |
 | Signature Coat section (photo, callout text and positions) | `components/SignatureCoat.tsx` |
+| Atelier section (photo, text, pattern, stats) | `components/Atelier.tsx` |
+| **Atelier stats and text: put your real numbers here** | `lib/atelier.ts` |
+| Section divider (hairline that draws itself) | `components/Hairline.tsx` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |

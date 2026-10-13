@@ -1,10 +1,10 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { gsap, ScrollTrigger, SplitText } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { DURATION, EASE, STAGGER } from "@/lib/motion";
 import { LOOKS } from "@/lib/collection";
-import { clipRise } from "@/lib/reveal";
+import { clipRise, riseLinesOnScroll } from "@/lib/reveal";
 import EditorialImage from "@/components/EditorialImage";
 
 /* ──────────────────────────────────────────────────────────────
@@ -58,23 +58,7 @@ export default function Collection() {
         };
 
         // ── Headline: lines rise from their masks as the section arrives ──
-        const split = SplitText.create(headline.current, {
-          type: "lines",
-          mask: "lines",
-          linesClass: "split-line",
-          autoSplit: true,
-          onSplit: (self) =>
-            gsap.fromTo(
-              self.lines,
-              reduced ? { autoAlpha: 0 } : { yPercent: 100 },
-              {
-                ...(reduced
-                  ? { autoAlpha: 1, duration: DURATION.reduced, ease: "none" }
-                  : { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
-                scrollTrigger: { trigger: headline.current, start: "top 85%", once: true },
-              },
-            ),
-        });
+        const split = riseLinesOnScroll(headline.current, reduced);
 
         let cleanup: (() => void) | undefined;
 
