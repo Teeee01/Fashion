@@ -8,7 +8,7 @@ import { ARTICLES } from "@/lib/journal";
 import EditorialImage from "./EditorialImage";
 
 /* ──────────────────────────────────────────────────────────────
-   (07) Journal — a vertical list of five entries.
+   (10) Journal — a vertical list of five entries.
    Rows rise from their masks (with their hairline drawing in) as they
    come into view. With a mouse: hovering a row shows a 280×360
    thumbnail that trails the cursor (quickTo, 0.5s) and tilts with the
@@ -128,7 +128,7 @@ export default function Journal() {
     <section ref={section} id="journal" aria-labelledby="journal-label" className="relative py-[16vh]">
       <div className="grid-12 mb-12">
         <p id="journal-label" className="ui-label col-span-6" data-reveal="lines">
-          (07) — Journal
+          (10) — Journal
         </p>
         <p className="ui-label col-span-6 text-right text-stone" data-reveal="lines">
           Notes from the atelier

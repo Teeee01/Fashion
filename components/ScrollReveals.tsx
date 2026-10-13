@@ -39,7 +39,9 @@ export default function ScrollReveals() {
             : gsap.to(batch, { yPercent: 0, duration: DURATION.text, ease: EASE.text, stagger: STAGGER.lines }),
       });
 
-      ScrollTrigger.batch(gsap.utils.toArray<HTMLElement>('[data-reveal="card"]'), {
+      const cards = gsap.utils.toArray<HTMLElement>('[data-reveal="card"]');
+      gsap.set(cards, { visibility: "visible" }); // the image's clip and the text's mask keep them hidden
+      ScrollTrigger.batch(cards, {
         start: "top 92%",
         once: true,
         onEnter: (batch) =>

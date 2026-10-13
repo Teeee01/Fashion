@@ -8,7 +8,7 @@ import StairReveal, { type StairRevealHandle } from "./StairReveal";
 import { useLenis } from "./SmoothScroll";
 
 /* ──────────────────────────────────────────────────────────────
-   (06) Campaign Film — a 300vh section with a sticky stage.
+   (09) Campaign Film — a 300vh section with a sticky stage.
    A muted looping film plays in a small centred window (40vw × 24vw;
    wider on phones). Scrubbed by scroll, the window opens out to full
    screen over the first 60%. At full screen a "PLAY FILM" button
@@ -156,7 +156,7 @@ export default function CampaignFilm() {
 
         <div ref={kicker} className="pointer-events-none absolute inset-x-pad top-[112px] flex justify-between">
           <p id="film-label" className="ui-label" data-reveal="lines">
-            (06) — Campaign Film
+            (09) — Campaign Film
           </p>
           <p className="ui-label text-stone" data-reveal="lines">
             AW26

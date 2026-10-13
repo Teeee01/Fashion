@@ -389,56 +389,94 @@ html[data-intro-seen] .preloader-count {
   transform: translateY(100%);
 }
 
-/* ── The Signature Coat ───────────────────────────────────────────
-   THE and COAT sit either side of the small centred image (20vw, or
-   28vw on phones), with a 2vw breathing gap. */
-.coat-word {
-  font-size: 14vw;
+/* ── The Signature series ─────────────────────────────────────────
+   The two words sit either side of the small centred image (or above
+   and below it, for the shoe's low band), with a breathing gap. Sizes
+   and the frame's half-size come from SignatureFeature as variables. */
+.sig-word {
+  font-size: var(--size-d);
   letter-spacing: -0.03em;
-  translate: 0 -50%; /* separate from GSAP's transform, which slides it */
 }
 
-.coat-word-left {
-  right: calc(50% + 10vw + 2vw);
+/* `translate` is separate from GSAP's transform, which slides the words. */
+.sig-words-h .sig-word {
+  top: 50%;
+  translate: 0 -50%;
 }
 
-.coat-word-right {
-  left: calc(50% + 10vw + 2vw);
+.sig-words-h .sig-word-left {
+  right: calc(50% + var(--half-d) + 2vw);
+}
+
+.sig-words-h .sig-word-right {
+  left: calc(50% + var(--half-d) + 2vw);
+}
+
+.sig-words-v .sig-word {
+  left: 50%;
+  translate: -50% 0;
+}
+
+.sig-words-v .sig-word-left {
+  bottom: calc(50% + var(--half-d) + 2vh);
+}
+
+.sig-words-v .sig-word-right {
+  top: calc(50% + var(--half-d) + 2vh);
 }
 
 @media (max-width: 767px) {
-  .coat-word {
-    font-size: 12vw;
+  .sig-word {
+    font-size: var(--size-m);
   }
 
-  .coat-word-left {
-    right: calc(50% + 14vw + 2vw);
+  .sig-words-h .sig-word-left {
+    right: calc(50% + var(--half-m) + 2vw);
   }
 
-  .coat-word-right {
-    left: calc(50% + 14vw + 2vw);
+  .sig-words-h .sig-word-right {
+    left: calc(50% + var(--half-m) + 2vw);
+  }
+
+  .sig-words-v .sig-word-left {
+    bottom: calc(50% + var(--half-m) + 2vh);
+  }
+
+  .sig-words-v .sig-word-right {
+    top: calc(50% + var(--half-m) + 2vh);
   }
 }
 
 /* Hidden until scroll brings them in (no flash before GSAP runs). */
-.js .coat-media {
+.js .sig-media {
   clip-path: inset(50% 50% 50% 50%);
 }
 
-.js .coat-point {
+.sig-layer-next {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.js .sig-point {
   opacity: 0;
 }
 
-.coat-line {
+.sig-line {
   stroke-dasharray: 1;
 }
 
-.js .coat-line {
+.js .sig-line {
   stroke-dashoffset: 1;
 }
 
-.js .coat-label-text {
+.js .sig-label-text,
+.js .sig-shop {
   transform: translateY(100%);
+}
+
+.js .sig-indicator {
+  opacity: 0;
+  visibility: hidden;
 }
 
 /* ── Atelier ──────────────────────────────────────────────────────

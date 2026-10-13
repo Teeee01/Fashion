@@ -36,23 +36,28 @@ After that, any time you want to see the site:
 | Custom cursor | `components/Cursor.tsx` |
 | Manifesto section (01 — The House) | `components/Manifesto.tsx` |
 | New collection section (02) | `components/collection/Collection.tsx` |
-| **Collection looks: names and photos** | `lib/collection.ts` |
+| **Collection looks: names, photos and the product each links to** | `lib/collection.ts` |
 | Lookbook section (campaign + editorial grid) | `components/Lookbook.tsx` |
-| **Lookbook photos** | `lib/lookbook.ts` |
-| Signature Coat section (photo, callout text and positions) | `components/SignatureCoat.tsx` |
+| **Lookbook photos and the pieces in each look** (`/look/09` …) | `lib/lookbook.ts` |
+| Signature series (coat, cap, pants, shoe): pinned animation | `components/SignatureFeature.tsx` |
+| **Signature series: photos, words, callout text and positions, product links** | `lib/signatures.ts` |
+| **The cap's four angle photos (replace the placeholders)** | `public/images/cap/` (see the note in `lib/signatures.ts`) |
 | Atelier section (photo, text, pattern, stats) | `components/Atelier.tsx` |
 | **Atelier stats and text: put your real numbers here** | `lib/atelier.ts` |
 | Section divider (hairline that draws itself) | `components/Hairline.tsx` |
 | Campaign film section and full-screen player | `components/CampaignFilm.tsx` |
 | **Campaign film (replace with yours)** | `public/campaign.mp4`, `public/campaign.webm`, `public/campaign-poster.jpg` |
 | Journal section | `components/Journal.tsx` |
-| **Journal entries (titles, dates, images)** | `lib/journal.ts` |
+| **Journal entries (titles, dates, images, article text)** (`/journal/...`) | `lib/journal.ts` |
 | Footer (newsletter, links, wordmark) | `components/Footer.tsx` |
 | **Products and seasons (names, prices, photos, sizes, details)** | `lib/products.ts` |
-| Collection page (`/collections/aw26`) | `components/shop/CollectionPage.tsx` |
+| Collection pages (`/collections`, `/collections/aw26`) | `components/shop/CollectionPage.tsx` |
 | Product page (`/product/...`) | `components/shop/ProductPage.tsx` |
 | Page transitions | `components/PageTransition.tsx` |
-| Bag drawer | `components/BagDrawer.tsx` (bag contents: `lib/bag.ts`) |
+| Bag drawer | `components/BagDrawer.tsx` (bag contents: `lib/bag.tsx`) |
+| Checkout page (`/checkout`) | `components/shop/CheckoutPage.tsx` |
+| **Payments: where Stripe or Paystack plugs in** | `lib/checkout.ts` |
+| Currency (USD / NGN switch in the footer) | `lib/currency.ts` |
 | 3D ribbon | `components/hero/RibbonScene.tsx` |
 | Ribbon video fallback (for devices without 3D) | `public/ribbon-loop.mp4` and `.webm` |
 | Home page | `app/page.tsx` |
@@ -69,14 +74,15 @@ look number appears instead of a broken image.
 
 ## Notes
 
-- The shop is front end only: "Add to bag" and the bag drawer work (and remember the bag in your browser),
-  but checkout and the newsletter aren't connected to a payment or mailing service yet.
+- The shop is front end only: the bag, checkout form and order confirmation all work (the bag is remembered
+  in your browser), but no money is taken and the newsletter isn't connected to a mailing service yet.
+  `lib/checkout.ts` explains where Stripe or Paystack goes when you're ready.
 
 - Only the six brand colours exist in the styling system. Tailwind's default colours, rounded corners and
   shadows are switched off, so off-brand styles can't slip in by accident.
 - If someone's device asks for reduced motion, every animation becomes a short 0.3s fade, smooth
   scrolling turns off, the preloader skips its count, the 3D ribbon holds still, and the pinned
-  scroll sections (manifesto, signature coat, film, collection row) become ordinary sections.
+  scroll sections (manifesto, signature series, film, collection row); the cap shows its four angles in a grid become ordinary sections.
 - Phones (under 768px): 4 reveal columns instead of 6, a smaller ribbon centred behind the monogram,
   a swipe row instead of the pinned collection, no custom cursor, and MENU instead of the links.
 - Keyboard users get a "Skip to content" link and a 1px ink focus outline on everything.
